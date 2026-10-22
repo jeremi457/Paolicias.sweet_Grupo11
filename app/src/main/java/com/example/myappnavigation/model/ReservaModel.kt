@@ -1,5 +1,8 @@
 package com.example.myappnavigation.model
 
+/**
+ * Modelo de estado inmutable para el formulario de reserva y cotizaciones.
+ */
 data class ReservaModel(
     val productoId: Int = 0,
     val productoNombre: String = "",

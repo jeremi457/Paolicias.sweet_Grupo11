@@ -18,6 +18,10 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+/**
+ * ViewModel encargado del formulario de cotizacion y reserva de eventos.
+ * Centraliza y desacopla la logica de validacion y calculo de presupuesto.
+ */
 class ReservaViewModel : ViewModel() {
 
     var uiState by mutableStateOf(ReservaModel())
@@ -106,13 +110,17 @@ class ReservaViewModel : ViewModel() {
                 )
             ).toInt()
 
-            vibrar(appContext, 300) // recurso nativo: vibra al confirmar la reserva
             guardando = false
+            try {
+                vibrar(appContext, 200)
+            } catch (e: Exception) {
+                // Silencioso si no hay hardware de vibracion
+            }
             onSuccess(id)
         }
     }
 
-
+    // Reglas de validacion de negocio desacopladas de la interfaz
     private fun validarFecha(fecha: String): String? {
         if (fecha.isBlank()) return "Ingresa la fecha del evento"
         if (!Regex("""^\d{2}/\d{2}/\d{4}$""").matches(fecha)) return "Usa el formato dd/mm/aaaa"
