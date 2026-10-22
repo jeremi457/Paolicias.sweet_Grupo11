@@ -8,7 +8,6 @@ import com.example.myappnavigation.data.local.entity.ReservaEntity
 @Dao
 interface ReservaDao {
 
-
     @Insert
     suspend fun insertar(reserva: ReservaEntity): Long
 
