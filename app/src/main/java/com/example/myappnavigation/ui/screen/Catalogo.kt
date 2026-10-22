@@ -29,37 +29,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class ProductoCatalogo(
-    val id: Int,
-    val nombre: String,
-    val precioBase: String,
-    val colorFondo: Color
-)
+import com.example.myappnavigation.model.CatalogoData
+import com.example.myappnavigation.model.ProductoCatalogo
+import com.example.myappnavigation.ui.components.BarraInferior
+import java.text.NumberFormat
+import java.util.Locale
+import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun CatalogScreen(
-    onProductoClick: (ProductoCatalogo) -> Unit = {}
+    onProductoClick: (ProductoCatalogo) -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToReservations: () -> Unit = {}
 ) {
-    // 16 opciones de productos para el catálogo
-    val productos = listOf(
-        ProductoCatalogo(1, "Tortas personalizadas", "Desde $25.000", Color(0xFFFDE8ED)),
-        ProductoCatalogo(2, "Tortas clásicas", "Desde $18.000", Color(0xFFEFE3D8)),
-        ProductoCatalogo(3, "Cupcakes", "Desde $12.000", Color(0xFFFDE8ED)),
-        ProductoCatalogo(4, "Mesa dulce", "Desde $45.000", Color(0xFFFFF3D6)),
-        ProductoCatalogo(5, "Coffee break", "Desde $35.000", Color(0xFFEBE6F8)),
-        ProductoCatalogo(6, "Menú de catering", "Desde $60.000", Color(0xFFE2F0D9)),
-        ProductoCatalogo(7, "Galletas decoradas", "Desde $10.000", Color(0xFFFDE8ED)),
-        ProductoCatalogo(8, "Mini pasteles", "Desde $15.000", Color(0xFFFFF3D6)),
-        ProductoCatalogo(9, "Postres en shot", "Desde $14.000", Color(0xFFEBE6F8)),
-        ProductoCatalogo(10, "Tartas de fruta", "Desde $16.000", Color(0xFFE2F0D9)),
-        ProductoCatalogo(11, "Cheesecake", "Desde $20.000", Color(0xFFEFE3D8)),
-        ProductoCatalogo(12, "Pie de limón", "Desde $14.000", Color(0xFFFFF3D6)),
-        ProductoCatalogo(13, "Muffins salados", "Desde $12.000", Color(0xFFFDE8ED)),
-        ProductoCatalogo(14, "Empanaditas cóctel", "Desde $18.000", Color(0xFFEFE3D8)),
-        ProductoCatalogo(15, "Canapés variados", "Desde $22.000", Color(0xFFEBE6F8)),
-        ProductoCatalogo(16, "Tablas picoteo", "Desde $30.000", Color(0xFFE2F0D9))
-    )
+
+    val productos = CatalogoData.productos
 
     Scaffold(
         containerColor = Color(0xFFF5F6FA)
@@ -69,7 +56,7 @@ fun CatalogScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Header Azul con Isotipo y Título
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -101,24 +88,31 @@ fun CatalogScreen(
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    Text(
-                        text = "Catálogo",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Column {
+                        Text(
+                            text = "Catálogo",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Toca un producto para cotizar tu evento",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.85f)
+                        )
+                    }
                 }
             }
 
-            // Grid ordenado de 2 en 2 mediante desplazamiento vertical
+
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // .chunked(2) divide la lista en parejas de a 2 elementos por fila
+
                 productos.chunked(2).forEach { parDeProductos ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -133,13 +127,21 @@ fun CatalogScreen(
                             }
                         }
 
-                        // Relleno de espacio si el número total fuera impar
+
                         if (parDeProductos.size == 1) {
                             Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }
             }
+
+
+            BarraInferior(
+                seleccionado = "Catálogo",
+                onInicioClick = onNavigateToHome,
+                onCatalogoClick = {},
+                onReservasClick = onNavigateToReservations
+            )
         }
     }
 }
@@ -149,6 +151,8 @@ fun TarjetaProducto(
     producto: ProductoCatalogo,
     onClick: () -> Unit
 ) {
+    val formatoMoneda = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,26 +164,20 @@ fun TarjetaProducto(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Área de Imagen (Espacio reservado con color de fondo)
-            Box(
+
+            Image(
+                painter = painterResource(id = producto.imagenRes),
+                contentDescription = producto.nombre,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
-                    .background(
-                        color = producto.colorFondo,
-                        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "[Imagen]",
-                    color = Color.Gray,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                    .height(110.dp)
+                    .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
+                    .background(producto.colorFondo)
+            )
             }
 
-            // Texto de Nombre y Precio Base
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -195,7 +193,7 @@ fun TarjetaProducto(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = producto.precioBase,
+                    text = "Desde ${formatoMoneda.format(producto.precioBase)} c/10 pers.",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )

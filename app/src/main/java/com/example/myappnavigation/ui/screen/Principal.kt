@@ -26,14 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myappnavigation.ui.components.BarraInferior
 
 @Composable
 fun Principal(
-    userName: String = "María González",
+    onReservarClick: () -> Unit = {},
     onNavigateToCatalog: () -> Unit = {},
-    onNavigateToQuoter: () -> Unit = {},
-    onNavigateToReservations: () -> Unit = {},
-    onNavigateToUploadReceipt: () -> Unit = {}
+    onNavigateToReservations: () -> Unit = {}
 ) {
     Scaffold(
         containerColor = Color(0xFFF5F6FA)
@@ -77,23 +76,15 @@ fun Principal(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     // Saludo de bienvenida
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "¡Bienvenida!",
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 13.sp
-                        )
-                        Text(
-                            text = userName,
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Text(
+                        text = "¡Bienvenid@!",
+                        color = Color.White,
+                        fontSize = 33.sp
+                    )
                 }
             }
 
-            // 2. Contenido Central (Banner + Opciones)
+            // 2. Contenido central (banner + acción principal)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -119,66 +110,28 @@ fun Principal(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Lista de botones de opciones del menú
-                BotonOpcionMenu(
-                    texto = "Catálogo",
-                    onClick = onNavigateToCatalog
+                Text(
+                    text = "Elige un producto, cotiza tu evento y reserva con el abono del 50%.",
+                    fontSize = 14.sp,
+                    color = Color(0xFF555555)
                 )
-                Spacer(modifier = Modifier.height(10.dp))
 
-                BotonOpcionMenu(
-                    texto = "Cotizar evento",
-                    onClick = onNavigateToQuoter
-                )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
+                // Única acción principal: inicia el flujo catálogo -> cotización -> comprobante
                 BotonOpcionMenu(
-                    texto = "Mis reservas",
-                    onClick = onNavigateToReservations
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-
-                BotonOpcionMenu(
-                    texto = "Subir comprobante",
-                    onClick = onNavigateToUploadReceipt
+                    texto = "Reservar evento",
+                    onClick = onReservarClick
                 )
             }
 
-            // 3. Barra de Navegación Inferior (Basada en Row y Text)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF4C5BF5))
-                    .padding(vertical = 12.dp, horizontal = 8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Inicio",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        text = "Catálogo",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        text = "Mis reservas",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        text = "Perfil",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 12.sp
-                    )
-                }
-            }
+            // 3. Barra de navegación inferior
+            BarraInferior(
+                seleccionado = "Inicio",
+                onInicioClick = {},
+                onCatalogoClick = onNavigateToCatalog,
+                onReservasClick = onNavigateToReservations
+            )
         }
     }
 }
