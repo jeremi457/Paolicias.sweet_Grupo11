@@ -26,15 +26,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myappnavigation.ui.viewmodel.LoginViewModel
+import com.example.myappnavigation.ui.screen.Register
 
 @Composable
 fun Login(
     onNavigateToRegister: () -> Unit,
-    onLoginSuccess: () -> Unit, //se agrega cuando el login es exitoso
+    onLoginSuccess: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
     val state = viewModel.uiState
-    val context = LocalContext.current // <-- contexto para la base de datos SQLite y Toast
+    val context = LocalContext.current
 
     Scaffold(
         topBar = { Header("INICIAR SESIÓN") },
@@ -52,7 +53,7 @@ fun Login(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Campo de Correo
+
             OutlinedTextField(
                 value = state.email,
                 onValueChange = { viewModel.onEmailChanged(it) },
@@ -62,7 +63,7 @@ fun Login(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
-            // Campo de Contraseña
+
             OutlinedTextField(
                 value = state.password,
                 onValueChange = { viewModel.onPasswordChanged(it) },
@@ -72,7 +73,7 @@ fun Login(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth()
             )
-            // Muestra mensaje de error en rojo si falla el inicio de sesión
+
             if (viewModel.errorMessage != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -82,11 +83,11 @@ fun Login(
                 )
             }
             Spacer(modifier = Modifier.height(24.dp))
-            // Botón de Ingresar adaptado a la base de datos
+
             Button(
                 onClick = {
-                    viewModel.onLoginClick(context) {
-                        Toast.makeText(context, "¡Bienvenido de nuevo!", Toast.LENGTH_SHORT).show()
+                    viewModel.onLoginClick(context) { nombre ->
+                        Toast.makeText(context, "¡Bienvenid@, $nombre!", Toast.LENGTH_SHORT).show()
                         onLoginSuccess()
                     }
                 },
@@ -97,7 +98,7 @@ fun Login(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Botón para ir al Registro
+
             Button(
                 onClick = { onNavigateToRegister() },
                 modifier = Modifier.fillMaxWidth()
