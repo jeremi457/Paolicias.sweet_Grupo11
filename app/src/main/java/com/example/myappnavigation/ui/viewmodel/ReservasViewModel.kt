@@ -12,6 +12,9 @@ import com.example.myappnavigation.data.local.entity.EstadoReserva
 import com.example.myappnavigation.data.local.entity.ReservaEntity
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel para la gestion y consulta de reservas registradas y carga de comprobantes.
+ */
 class ReservasViewModel : ViewModel() {
 
     var reservas by mutableStateOf<List<ReservaEntity>>(emptyList())
@@ -49,13 +52,17 @@ class ReservasViewModel : ViewModel() {
         val reserva = reservaActual ?: return
         val uri = imagenUri
         if (uri == null) {
-            errorMessage = "Debes adjuntar la imagen del comprobante."
+            errorMessage = "Debes seleccionar una imagen del comprobante"
             return
         }
+
         val appContext = context.applicationContext
         viewModelScope.launch {
-            AppDatabase.getDatabase(appContext).reservaDao()
-                .actualizarComprobante(reserva.id, uri.toString(), EstadoReserva.COMPROBANTE_ENVIADO)
+            AppDatabase.getDatabase(appContext).reservaDao().actualizarComprobante(
+                id = reserva.id,
+                uri = uri.toString(),
+                estado = EstadoReserva.COMPROBANTE_ENVIADO
+            )
             onSuccess()
         }
     }
