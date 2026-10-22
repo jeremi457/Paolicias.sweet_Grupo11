@@ -34,7 +34,7 @@ fun Register(
     viewModel: RegisterViewModel = viewModel()
 ) {
     val state = viewModel.uiState
-    val context = LocalContext.current // Contexto para acceder a la BD SQLite y lanzar el Toast
+    val context = LocalContext.current
 
     Scaffold(
         topBar = { Header("REGISTRO DE USUARIO") },
@@ -51,7 +51,7 @@ fun Register(
             Text("R e g i s t r o", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
-            //nombre
+
             OutlinedTextField(
                 value = state.name,
                 onValueChange = { viewModel.onNameChanged(it) },
@@ -60,7 +60,7 @@ fun Register(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(12.dp))
-            // correo
+
             OutlinedTextField(
                 value = state.email,
                 onValueChange = { viewModel.onEmailChanged(it) },
@@ -70,7 +70,7 @@ fun Register(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(12.dp))
-            // contraseña
+
             OutlinedTextField(
                 value = state.password,
                 onValueChange = { viewModel.onPasswordChanged(it) },
@@ -81,7 +81,7 @@ fun Register(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(12.dp))
-            // repetir contraseña
+
             OutlinedTextField(
                 value = state.confirmPassword,
                 onValueChange = { viewModel.onConfirmPasswordChanged(it) },
@@ -91,7 +91,7 @@ fun Register(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth()
             )
-            // muestra mensaje de error si no coinciden las claves o si el correo ya existe
+
             if (state.errorMessage != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -101,7 +101,7 @@ fun Register(
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
-            // Botón de Registro
+
             Button(
                 onClick = {
                     viewModel.onRegisterClick(context) {
@@ -110,7 +110,7 @@ fun Register(
                             "¡Registro exitoso! Por favor inicia sesión.",
                             Toast.LENGTH_SHORT
                         ).show()
-                        onNavigateToLogin() // Retorna a la pantalla de Login
+                        onNavigateToLogin()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

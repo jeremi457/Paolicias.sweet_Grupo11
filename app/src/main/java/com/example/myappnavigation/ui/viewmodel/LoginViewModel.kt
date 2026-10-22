@@ -23,7 +23,7 @@ class LoginViewModel : ViewModel() {
         uiState = uiState.copy(password = password)
         errorMessage = null
     }
-    fun onLoginClick(context: Context, onSuccess: () -> Unit) {
+    fun onLoginClick(context: Context, onSuccess: (String) -> Unit) {
         val email = uiState.email
         val password = uiState.password
 
@@ -37,8 +37,9 @@ class LoginViewModel : ViewModel() {
             val user = db.usuarioDao().getUserByEmail(email)
 
             if (user != null && user.password == password) {
+                uiState = uiState.copy(name = user.name)
                 errorMessage = null
-                onSuccess() // Inicia sesión con éxito
+                onSuccess(user.name)
             } else {
                 errorMessage = "Correo o contraseña incorrectos."
             }

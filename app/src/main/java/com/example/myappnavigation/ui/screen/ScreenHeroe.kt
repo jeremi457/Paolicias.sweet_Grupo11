@@ -40,7 +40,7 @@ fun ScreenHeroe(onNavigateToLogin: () -> Unit)
 {
     val context = LocalContext.current
     Scaffold(
-        topBar = { Header(title = "SUPER HERO APP") },
+        topBar = { Header(title = "PAOLICIAS SWEET") },
         bottomBar = { Footer() }
     ) {
         innerPadding ->
@@ -48,7 +48,7 @@ fun ScreenHeroe(onNavigateToLogin: () -> Unit)
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFFF44336)),
+                .background(Color(0xFF00B0FF)),
             contentAlignment = Alignment.Center
         ){
             Column(
@@ -57,20 +57,20 @@ fun ScreenHeroe(onNavigateToLogin: () -> Unit)
                 modifier = Modifier.padding(16.dp)
            ) {
                 Image(
-                    painter = painterResource(id = R.drawable.logo),
+                    painter = painterResource(id = R.drawable.pastel),
                     contentDescription = "Logo de super héroe",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(240.dp)
                         .shadow(12.dp, shape = CircleShape)
                         .clip(CircleShape)
-                        .border(4.dp, Color(0xFFFFD700), CircleShape)
+                        .border(4.dp, Color(0xFF000000), CircleShape)
                 )
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
                     onClick = {
-                        Toast.makeText(context, "Bienvenid@ a mi App", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Bienvenid@ a Paolicias Sweet!", Toast.LENGTH_SHORT).show()
                         onNavigateToLogin()
                     },
                     modifier = Modifier
@@ -84,13 +84,13 @@ fun ScreenHeroe(onNavigateToLogin: () -> Unit)
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp
                     )
-                }//fin button
+                }
             }
 
         }
 
     }
-}//fin
+}
 
 
 @Preview(showBackground = true)
