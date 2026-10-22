@@ -50,15 +50,7 @@ fun CatalogScreen(
         ProductoCatalogo(5, "Coffee break", "Desde $35.000", Color(0xFFEBE6F8)),
         ProductoCatalogo(6, "Menú de catering", "Desde $60.000", Color(0xFFE2F0D9)),
         ProductoCatalogo(7, "Galletas decoradas", "Desde $10.000", Color(0xFFFDE8ED)),
-        ProductoCatalogo(8, "Mini pasteles", "Desde $15.000", Color(0xFFFFF3D6)),
-        ProductoCatalogo(9, "Postres en shot", "Desde $14.000", Color(0xFFEBE6F8)),
-        ProductoCatalogo(10, "Tartas de fruta", "Desde $16.000", Color(0xFFE2F0D9)),
-        ProductoCatalogo(11, "Cheesecake", "Desde $20.000", Color(0xFFEFE3D8)),
-        ProductoCatalogo(12, "Pie de limón", "Desde $14.000", Color(0xFFFFF3D6)),
-        ProductoCatalogo(13, "Muffins salados", "Desde $12.000", Color(0xFFFDE8ED)),
-        ProductoCatalogo(14, "Empanaditas cóctel", "Desde $18.000", Color(0xFFEFE3D8)),
-        ProductoCatalogo(15, "Canapés variados", "Desde $22.000", Color(0xFFEBE6F8)),
-        ProductoCatalogo(16, "Tablas picoteo", "Desde $30.000", Color(0xFFE2F0D9))
+        ProductoCatalogo(8, "Mini pasteles", "Desde $15.000", Color(0xFFFFF3D6))
     )
 
     Scaffold(

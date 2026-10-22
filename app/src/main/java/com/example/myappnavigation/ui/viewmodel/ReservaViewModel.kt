@@ -11,7 +11,7 @@ import com.example.myappnavigation.data.local.entity.ReservaEntity
 import com.example.myappnavigation.model.CatalogoData
 import com.example.myappnavigation.model.ReservaModel
 import com.example.myappnavigation.model.Tarifario
-import com.example.myappnavigation.util.vibrar
+import com.example.myappnavigation.ui.screen.vibrar
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
