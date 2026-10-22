@@ -8,7 +8,7 @@ import com.example.myappnavigation.data.local.entity.ReservaEntity
 @Dao
 interface ReservaDao {
 
-    // guarda una reserva y devuelve el id generado
+
     @Insert
     suspend fun insertar(reserva: ReservaEntity): Long
 

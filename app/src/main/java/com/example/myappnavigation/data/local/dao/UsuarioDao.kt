@@ -9,7 +9,6 @@ import com.example.myappnavigation.data.local.entity.UsuarioEntity
 @Dao
 interface UsuarioDao {
 
-    // registrar un nuevo usuario en la base de datos sqlite
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun registerUser(user: UsuarioEntity)
 

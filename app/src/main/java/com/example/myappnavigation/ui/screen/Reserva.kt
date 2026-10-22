@@ -1,5 +1,7 @@
 package com.example.myappnavigation.ui.screen
 
+import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -23,48 +24,41 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myappnavigation.model.Tarifario
+import com.example.myappnavigation.ui.components.IconoError
+import com.example.myappnavigation.ui.components.MensajeError
+import com.example.myappnavigation.ui.viewmodel.ReservaViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
 fun ReservaScreen(
+    productoId: Int,
     onBackClick: () -> Unit = {},
-    onReservarClick: (fecha: String, horario: String, asistentes: Int, telefono: String, observaciones: String, total: Int) -> Unit = { _, _, _, _, _, _ -> }
+    onReservaGuardada: (reservaId: Int) -> Unit = {},
+    viewModel: ReservaViewModel = viewModel()
 ) {
-    // Estados del formulario
-    var fecha by remember { mutableStateOf("25/11/2026") }
-    var horario by remember { mutableStateOf("Tarde") }
-    var asistentes by remember { mutableIntStateOf(50) } // Inicializado en 50 como el mockup
-    var telefono by remember { mutableStateOf("12345") }
-    var observaciones by remember { mutableStateOf("Dos invitados celíacos") }
+    val state = viewModel.uiState
+    val context = LocalContext.current
+    val formatoMoneda = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))
 
-    // Validación de teléfono (exactamente 9 dígitos)
-    val esTelefonoInvalido = telefono.length != 9 || !telefono.all { it.isDigit() }
-
-    // Cálculo estimado (ejemplo: $3.000 por asistente)
-    val precioPorPersona = 3000
-    val totalEstimado = asistentes * precioPorPersona
-    val abonoEstimado = totalEstimado / 2
-
-    // Formateador de moneda chilena
-    val formatoMoneda = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+    // Carga el producto elegido en el catálogo
+    LaunchedEffect(productoId) {
+        viewModel.seleccionarProducto(productoId)
+    }
 
     Scaffold(
         containerColor = Color(0xFFF5F6FA)
@@ -97,9 +91,7 @@ fun ReservaScreen(
                             .clickable { onBackClick() }
                             .padding(horizontal = 8.dp)
                     )
-
                     Spacer(modifier = Modifier.width(12.dp))
-
                     Text(
                         text = "Reservar evento",
                         fontSize = 22.sp,
@@ -117,34 +109,61 @@ fun ReservaScreen(
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Fecha y Horario
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                // Producto seleccionado en el catálogo
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFDE8ED)),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "Fecha", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = fecha,
-                            onValueChange = { fecha = it },
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(text = "Producto seleccionado", color = Color.Gray, fontSize = 12.sp)
+                        Text(
+                            text = state.productoNombre,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color(0xFF222222)
+                        )
+                        Text(
+                            text = "Desde ${formatoMoneda.format(state.precioBase)} por cada 10 asistentes",
+                            fontSize = 13.sp,
+                            color = Color(0xFF555555)
                         )
                     }
+                }
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "Horario", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = horario,
-                            onValueChange = { horario = it },
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                // Fecha
+                CampoFormulario(
+                    titulo = "Fecha del evento",
+                    valor = state.fecha,
+                    placeholder = "dd/mm/aaaa",
+                    error = state.fechaError,
+                    onValueChange = { viewModel.onFechaChanged(it) }
+                )
+
+                // Horario (tres opciones)
+                Column {
+                    Text(text = "Horario", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf("Mañana", "Tarde", "Noche").forEach { opcion ->
+                            val seleccionado = state.horario == opcion
+                            Button(
+                                onClick = { viewModel.onHorarioChanged(opcion) },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (seleccionado) Color(0xFF4C5BF5) else Color(0xFFEEF0FE),
+                                    contentColor = if (seleccionado) Color.White else Color(0xFF4C5BF5)
+                                ),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(opcion, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
+                    MensajeError(state.horarioError)
                 }
 
                 // Asistentes (Contador de 10 en 10 hasta 100)
@@ -157,9 +176,8 @@ fun ReservaScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Botón Restar (-)
                         Button(
-                            onClick = { if (asistentes > 10) asistentes -= 10 },
+                            onClick = { viewModel.onAsistentesMenos() },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEEF0FE)),
                             modifier = Modifier.size(54.dp)
@@ -167,7 +185,6 @@ fun ReservaScreen(
                             Text("-", fontSize = 24.sp, color = Color(0xFF4C5BF5), fontWeight = FontWeight.Bold)
                         }
 
-                        // Número de Asistentes
                         Card(
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -181,7 +198,7 @@ fun ReservaScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "$asistentes",
+                                    text = "${state.asistentes}",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF1E1E1E)
@@ -189,9 +206,8 @@ fun ReservaScreen(
                             }
                         }
 
-                        // Botón Sumar (+)
                         Button(
-                            onClick = { if (asistentes < 100) asistentes += 10 },
+                            onClick = { viewModel.onAsistentesMas() },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEEF0FE)),
                             modifier = Modifier.size(54.dp)
@@ -201,68 +217,35 @@ fun ReservaScreen(
                     }
 
                     Text(
-                        text = "De 10 en 10, máximo 100",
+                        text = "De ${Tarifario.PASO} en ${Tarifario.PASO}, máximo ${Tarifario.MAX_ASISTENTES}",
                         fontSize = 12.sp,
                         color = Color.Gray,
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
 
-                // Teléfono de contacto (con alerta de error visual)
-                Column {
-                    Text(text = "Teléfono de contacto", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = telefono,
-                        onValueChange = { telefono = it },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        isError = esTelefonoInvalido,
-                        trailingIcon = {
-                            if (esTelefonoInvalido) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .background(Color(0xFFD32F2F), shape = CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text("!", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                }
-                            }
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (esTelefonoInvalido) Color(0xFFD32F2F) else Color(0xFF4C5BF5),
-                            unfocusedBorderColor = if (esTelefonoInvalido) Color(0xFFD32F2F) else Color.Gray
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                // Teléfono
+                CampoFormulario(
+                    titulo = "Teléfono de contacto",
+                    valor = state.telefono,
+                    placeholder = "912345678",
+                    error = state.telefonoError,
+                    keyboardType = KeyboardType.Phone,
+                    onValueChange = { viewModel.onTelefonoChanged(it) }
+                )
 
-                    if (esTelefonoInvalido) {
-                        Text(
-                            text = "Ingresa un teléfono válido de 9 dígitos",
-                            color = Color(0xFFD32F2F),
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                }
+                // Observaciones (opcional)
+                CampoFormulario(
+                    titulo = "Observaciones (opcional)",
+                    valor = state.observaciones,
+                    placeholder = "Alergias, celíacos, vegetarianos...",
+                    error = state.observacionesError,
+                    singleLine = false,
+                    modifier = Modifier.height(110.dp),
+                    onValueChange = { viewModel.onObservacionesChanged(it) }
+                )
 
-                // Observaciones
-                Column {
-                    Text(text = "Observaciones", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = observaciones,
-                        onValueChange = { observaciones = it },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(90.dp)
-                    )
-                }
-
-                // Card de Resumen (Total estimado y Abono 50%)
+                // Resumen: los montos cambian con animación al variar los asistentes
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -277,12 +260,14 @@ fun ReservaScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(text = "Total estimado", color = Color.Gray, fontSize = 14.sp)
-                            Text(
-                                text = formatoMoneda.format(totalEstimado),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = Color(0xFF222222)
-                            )
+                            AnimatedContent(targetState = state.total, label = "total") { total ->
+                                Text(
+                                    text = formatoMoneda.format(total),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF222222)
+                                )
+                            }
                         }
 
                         Row(
@@ -290,12 +275,14 @@ fun ReservaScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(text = "Abono 50% para reservar", color = Color(0xFF4C5BF5), fontSize = 14.sp)
-                            Text(
-                                text = formatoMoneda.format(abonoEstimado),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = Color(0xFF4C5BF5)
-                            )
+                            AnimatedContent(targetState = state.abono, label = "abono") { abono ->
+                                Text(
+                                    text = formatoMoneda.format(abono),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF4C5BF5)
+                                )
+                            }
                         }
                     }
                 }
@@ -303,11 +290,14 @@ fun ReservaScreen(
                 // Botón Confirmar Reserva
                 Button(
                     onClick = {
-                        if (!esTelefonoInvalido) {
-                            onReservarClick(fecha, horario, asistentes, telefono, observaciones, totalEstimado)
+                        if (viewModel.validarFormulario()) {
+                            viewModel.guardarReserva(context) { reservaId ->
+                                Toast.makeText(context, "¡Reserva registrada!", Toast.LENGTH_SHORT).show()
+                                onReservaGuardada(reservaId)
+                            }
                         }
                     },
-                    enabled = !esTelefonoInvalido,
+                    enabled = !viewModel.guardando,
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4C5BF5)),
                     modifier = Modifier
@@ -321,25 +311,40 @@ fun ReservaScreen(
                     )
                 }
             }
-
-            // 3. Barra de Navegación Inferior
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF4C5BF5))
-                    .padding(vertical = 12.dp, horizontal = 8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Inicio", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-                    Text(text = "Catálogo", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-                    Text(text = "Mis reservas", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    Text(text = "Perfil", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-                }
-            }
         }
+    }
+}
+
+// Campo con título, borde rojo + ícono "!" y mensaje animado cuando hay error
+@Composable
+private fun CampoFormulario(
+    titulo: String,
+    valor: String,
+    placeholder: String,
+    error: String?,
+    onValueChange: (String) -> Unit,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    singleLine: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    Column {
+        Text(text = titulo, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Spacer(modifier = Modifier.height(4.dp))
+        OutlinedTextField(
+            value = valor,
+            onValueChange = onValueChange,
+            placeholder = { Text(placeholder) },
+            singleLine = singleLine,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            isError = error != null,
+            trailingIcon = {
+                if (error != null) {
+                    IconoError()
+                }
+            },
+            shape = RoundedCornerShape(12.dp),
+            modifier = modifier.fillMaxWidth()
+        )
+        MensajeError(error)
     }
 }
