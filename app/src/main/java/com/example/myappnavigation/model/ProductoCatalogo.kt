@@ -14,14 +14,14 @@ data class ProductoCatalogo(
 
 object CatalogoData {
     val productos = listOf(
-        ProductoCatalogo(1, "Tortas personalizadas", 25000, Color(0xFFFDE8ED), R.drawable.pastel),
-        ProductoCatalogo(2, "Tortas clásicas", 18000, Color(0xFFEFE3D8), R.drawable.pastel),
-        ProductoCatalogo(3, "Cupcakes", 12000, Color(0xFFFDE8ED), R.drawable.pastel),
-        ProductoCatalogo(4, "Mesa dulce", 45000, Color(0xFFFFF3D6), R.drawable.pastel),
-        ProductoCatalogo(5, "Coffee break", 35000, Color(0xFFEBE6F8), R.drawable.pastel),
-        ProductoCatalogo(6, "Menú de catering", 60000, Color(0xFFE2F0D9), R.drawable.pastel),
-        ProductoCatalogo(7, "Galletas decoradas", 10000, Color(0xFFFDE8ED), R.drawable.pastel),
-        ProductoCatalogo(8, "Mini pasteles", 15000, Color(0xFFFFF3D6), R.drawable.pastel),
+        ProductoCatalogo(1, "Tortas personalizadas", 25000, Color(0xFFFDE8ED), R.drawable.torta),
+        ProductoCatalogo(2, "Tortas clásicas", 18000, Color(0xFFEFE3D8), R.drawable.torta),
+        ProductoCatalogo(3, "Cupcakes", 12000, Color(0xFFFDE8ED), R.drawable.cup),
+        ProductoCatalogo(4, "Mesa dulce", 45000, Color(0xFFFFF3D6), R.drawable.mesa),
+        ProductoCatalogo(5, "Coffee break", 35000, Color(0xFFEBE6F8), R.drawable.coffe),
+        ProductoCatalogo(6, "Menú de catering", 60000, Color(0xFFE2F0D9), R.drawable.catering),
+        ProductoCatalogo(7, "Galletas decoradas", 10000, Color(0xFFFDE8ED), R.drawable.galleta),
+        ProductoCatalogo(8, "Mini pasteles", 15000, Color(0xFFFFF3D6), R.drawable.mini),
     )
 
     fun buscarPorId(id: Int): ProductoCatalogo? = productos.firstOrNull { it.id == id }
