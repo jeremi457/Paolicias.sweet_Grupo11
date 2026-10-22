@@ -4,6 +4,9 @@ import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 import com.example.myappnavigation.R
 
+/**
+ * Modelo de datos representativo de un producto del catalogo de repostería/banqueteria.
+ */
 data class ProductoCatalogo(
     val id: Int,
     val nombre: String,
@@ -12,6 +15,9 @@ data class ProductoCatalogo(
     @DrawableRes val imagenRes: Int
 )
 
+/**
+ * Catalogo de productos y servicios disponibles en Paolicias Sweet.
+ */
 object CatalogoData {
     val productos = listOf(
         ProductoCatalogo(1, "Tortas personalizadas", 25000, Color(0xFFFDE8ED), R.drawable.torta),
@@ -24,5 +30,8 @@ object CatalogoData {
         ProductoCatalogo(8, "Mini pasteles", 15000, Color(0xFFFFF3D6), R.drawable.mini),
     )
 
+    /**
+     * Busca un producto por su identificador unico.
+     */
     fun buscarPorId(id: Int): ProductoCatalogo? = productos.firstOrNull { it.id == id }
 }
