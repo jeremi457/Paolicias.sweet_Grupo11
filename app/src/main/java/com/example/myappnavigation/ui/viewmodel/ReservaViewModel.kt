@@ -112,9 +112,9 @@ class ReservaViewModel : ViewModel() {
 
             guardando = false
             try {
-                vibrar(appContext, 200)
-            } catch (e: Exception) {
-                // Silencioso si no hay hardware de vibracion
+                vibrar(context, 400)
+            } catch (e: Throwable) {
+                android.util.Log.e("ReservaViewModel", "Error al vibrar en reserva: ${e.message}", e)
             }
             onSuccess(id)
         }
