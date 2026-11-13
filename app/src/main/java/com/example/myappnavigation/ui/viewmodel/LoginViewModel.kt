@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.myappnavigation.data.database.AppDatabase
 import com.example.myappnavigation.model.LoginModel
 import kotlinx.coroutines.launch
+import com.example.myappnavigation.model.Credenciales
 
 class LoginViewModel : ViewModel() {
     var uiState by mutableStateOf(LoginModel())
@@ -23,7 +24,7 @@ class LoginViewModel : ViewModel() {
         uiState = uiState.copy(password = password)
         errorMessage = null
     }
-    fun onLoginClick(context: Context, onSuccess: (String) -> Unit) {
+    fun onLoginClick(context: Context, onSuccess: (String, Boolean) -> Unit) {
         val email = uiState.email
         val password = uiState.password
 
@@ -32,6 +33,14 @@ class LoginViewModel : ViewModel() {
             return
         }
 
+        if (email == Credenciales.ADMIN_EMAIL && password ==
+            Credenciales.ADMIN_PASSWORD) {
+            errorMessage = null
+            onSuccess("Administrador", true)
+            return
+        }
+
+
         viewModelScope.launch {
             val db = AppDatabase.getDatabase(context)
             val user = db.usuarioDao().getUserByEmail(email)
@@ -39,7 +48,7 @@ class LoginViewModel : ViewModel() {
             if (user != null && user.password == password) {
                 uiState = uiState.copy(name = user.name)
                 errorMessage = null
-                onSuccess(user.name)
+                onSuccess(user.name, false)
             } else {
                 errorMessage = "Correo o contraseña incorrectos."
             }

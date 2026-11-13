@@ -30,15 +30,20 @@ class ReservaViewModel : ViewModel() {
     var guardando by mutableStateOf(false)
         private set
 
-    fun seleccionarProducto(productoId: Int) {
+    fun seleccionarProducto(context: Context, productoId: Int) {
         if (uiState.productoId == productoId) return
-        val producto = CatalogoData.buscarPorId(productoId)
-        uiState = uiState.copy(
-            productoId = productoId,
-            productoNombre = producto?.nombre ?: "",
-            precioBase = producto?.precioBase ?: 0
-        )
+        val appContext = context.applicationContext
+        viewModelScope.launch {
+            val producto =
+                AppDatabase.getDatabase(appContext).productoDao().obtenerPorId(productoId)
+            uiState = uiState.copy(
+                productoId = productoId,
+                productoNombre = producto?.nombre ?: "",
+                precioBase = producto?.precioBase ?: 0
+            )
+        }
     }
+
 
     fun onFechaChanged(valor: String) {
         val fecha = valor.take(10)

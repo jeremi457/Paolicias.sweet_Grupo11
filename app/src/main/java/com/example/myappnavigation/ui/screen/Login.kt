@@ -31,7 +31,7 @@ import com.example.myappnavigation.ui.screen.Register
 @Composable
 fun Login(
     onNavigateToRegister: () -> Unit,
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (esAdmin: Boolean) -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
     val state = viewModel.uiState
@@ -86,9 +86,10 @@ fun Login(
 
             Button(
                 onClick = {
-                    viewModel.onLoginClick(context) { nombre ->
-                        Toast.makeText(context, "¡Bienvenid@, $nombre!", Toast.LENGTH_SHORT).show()
-                        onLoginSuccess()
+                    viewModel.onLoginClick(context) { nombre, esAdmin ->
+                        Toast.makeText(context, "¡Bienvenid@, $nombre!",
+                            Toast.LENGTH_SHORT).show()
+                        onLoginSuccess(esAdmin)
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
