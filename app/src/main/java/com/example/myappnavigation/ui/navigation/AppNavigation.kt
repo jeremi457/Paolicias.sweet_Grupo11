@@ -18,6 +18,8 @@ import com.example.myappnavigation.ui.screen.ReservaScreen
 import com.example.myappnavigation.ui.screen.ReservationsScreen
 import com.example.myappnavigation.ui.screen.ScreenHeroe
 import com.example.myappnavigation.ui.screen.UploadReceiptScreen
+import com.example.myappnavigation.ui.screen.AdminProductoFormScreen
+import com.example.myappnavigation.ui.screen.AdminProductosScreen
 
 object Routes {
     const val SUPERHERO = "superhero"
@@ -27,10 +29,12 @@ object Routes {
     const val CATALOG = "catalog"
     const val RESERVATIONS = "reservations"
 
-    // Rutas con argumento
     const val QUOTER = "quoter/{productoId}"
     const val UPLOAD_RECEIPT = "upload_receipt/{reservaId}"
+    const val ADMIN_PRODUCTS = "admin_products"
+    const val ADMIN_FORM = "admin_form/{productoId}"
 
+    fun adminForm(productoId: Int) = "admin_form/$productoId"
     fun quoter(productoId: Int) = "quoter/$productoId"
     fun uploadReceipt(reservaId: Int) = "upload_receipt/$reservaId"
 }
@@ -69,9 +73,15 @@ fun AppNavigation() {
                 onNavigateToRegister = {
                     navController.navigate(Routes.REGISTER)
                 },
-                onLoginSuccess = {
-                    navController.navigate(Routes.PRINCIPAL) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
+                onLoginSuccess = { esAdmin ->
+                    if (esAdmin) {
+                        navController.navigate(Routes.ADMIN_PRODUCTS) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Routes.PRINCIPAL) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
                     }
                 }
             )
@@ -149,5 +159,31 @@ fun AppNavigation() {
                 }
             )
         }
+
+        composable(Routes.ADMIN_PRODUCTS) {
+            AdminProductosScreen(
+                onNuevoClick = { navController.navigate(Routes.adminForm(0)) },
+                onEditarClick = { productoId ->
+                    navController.navigate(Routes.adminForm(productoId))
+                },
+                onCerrarSesionClick = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.ADMIN_PRODUCTS) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(
+            route = Routes.ADMIN_FORM,
+            arguments = listOf(navArgument("productoId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val productoId = backStackEntry.arguments?.getInt("productoId") ?: 0
+            AdminProductoFormScreen(
+                productoId = productoId,
+                onBackClick = { navController.popBackStack() },
+                onGuardado = { navController.popBackStack() }
+            )
+        }
+
     }
 }

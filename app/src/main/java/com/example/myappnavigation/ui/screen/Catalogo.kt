@@ -30,7 +30,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myappnavigation.model.CatalogoData
-import com.example.myappnavigation.model.ProductoCatalogo
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myappnavigation.data.local.entity.ProductoEntity
+import com.example.myappnavigation.ui.viewmodel.CatalogoViewModel
 import com.example.myappnavigation.ui.components.BarraInferior
 import java.text.NumberFormat
 import java.util.Locale
@@ -41,12 +45,18 @@ import androidx.compose.ui.res.painterResource
 
 @Composable
 fun CatalogScreen(
-    onProductoClick: (ProductoCatalogo) -> Unit = {},
+    onProductoClick: (ProductoEntity) -> Unit = {},
     onNavigateToHome: () -> Unit = {},
-    onNavigateToReservations: () -> Unit = {}
+    onNavigateToReservations: () -> Unit = {},
+    viewModel: CatalogoViewModel = viewModel()
 ) {
 
-    val productos = CatalogoData.productos
+    val context = LocalContext.current
+    val productos = viewModel.productos
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarProductos(context)
+    }
 
     Scaffold(
         containerColor = Color(0xFFF5F6FA)
@@ -148,7 +158,7 @@ fun CatalogScreen(
 
 @Composable
 fun TarjetaProducto(
-    producto: ProductoCatalogo,
+    producto: ProductoEntity,
     onClick: () -> Unit
 ) {
     val formatoMoneda = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))
@@ -166,14 +176,13 @@ fun TarjetaProducto(
         ) {
 
             Image(
-                painter = painterResource(id = producto.imagenRes),
+                painter = painterResource(id = CatalogoData.imagenPorClave(producto.imagen)),
                 contentDescription = producto.nombre,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp)
                     .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
-                    .background(producto.colorFondo)
             )
             }
 

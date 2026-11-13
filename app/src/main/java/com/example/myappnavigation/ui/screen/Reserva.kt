@@ -55,9 +55,9 @@ fun ReservaScreen(
     val context = LocalContext.current
     val formatoMoneda = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))
 
-    // Carga el producto elegido en el catálogo
+
     LaunchedEffect(productoId) {
-        viewModel.seleccionarProducto(productoId)
+        viewModel.seleccionarProducto(context, productoId)
     }
 
     Scaffold(
@@ -317,7 +317,7 @@ fun ReservaScreen(
 
 // Campo con título, borde rojo + ícono "!" y mensaje animado cuando hay error
 @Composable
-private fun CampoFormulario(
+fun CampoFormulario(
     titulo: String,
     valor: String,
     placeholder: String,
