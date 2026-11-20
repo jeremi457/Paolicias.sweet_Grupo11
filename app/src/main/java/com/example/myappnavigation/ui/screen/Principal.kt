@@ -32,7 +32,8 @@ import com.example.myappnavigation.ui.components.BarraInferior
 fun Principal(
     onReservarClick: () -> Unit = {},
     onNavigateToCatalog: () -> Unit = {},
-    onNavigateToReservations: () -> Unit = {}
+    onNavigateToReservations: () -> Unit = {},
+    onCerrarSesionClick: () -> Unit = {}
 ) {
     Scaffold(
         containerColor = Color(0xFFF5F6FA)
@@ -122,6 +123,13 @@ fun Principal(
                 BotonOpcionMenu(
                     texto = "Reservar evento",
                     onClick = onReservarClick
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                BotonOpcionMenu(
+                    texto = "Cerrar sesión",
+                    onClick = onCerrarSesionClick
                 )
             }
 
