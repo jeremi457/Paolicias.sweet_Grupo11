@@ -42,6 +42,7 @@ class ReservaViewModel : ViewModel() {
                     productoNombre = producto.nombre,
                     precioBase = producto.precioBase
             )
+            }
         }
     }
 
