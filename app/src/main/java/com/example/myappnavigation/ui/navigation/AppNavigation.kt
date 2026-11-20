@@ -5,25 +5,36 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.myappnavigation.data.session.SesionActual
+import com.example.myappnavigation.data.session.SesionManager
+import com.example.myappnavigation.ui.screen.AdminProductoFormScreen
+import com.example.myappnavigation.ui.screen.AdminProductosScreen
 import com.example.myappnavigation.ui.screen.CatalogScreen
 import com.example.myappnavigation.ui.screen.Login
+import com.example.myappnavigation.ui.screen.LoginAdmin
 import com.example.myappnavigation.ui.screen.Principal
 import com.example.myappnavigation.ui.screen.Register
 import com.example.myappnavigation.ui.screen.ReservaScreen
 import com.example.myappnavigation.ui.screen.ReservationsScreen
 import com.example.myappnavigation.ui.screen.ScreenHeroe
 import com.example.myappnavigation.ui.screen.UploadReceiptScreen
-import com.example.myappnavigation.ui.screen.AdminProductoFormScreen
-import com.example.myappnavigation.ui.screen.AdminProductosScreen
 
 object Routes {
     const val SUPERHERO = "superhero"
     const val LOGIN = "login"
+    const val ADMIN_LOGIN = "admin_login"
     const val REGISTER = "register"
     const val PRINCIPAL = "principal"
     const val CATALOG = "catalog"
@@ -42,8 +53,22 @@ object Routes {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
-    // Navegación de la barra inferior: vuelve al menú principal sin apilar pantallas
+    // Restaura la sesión guardada en SQLite y decide cuál es la primera pantalla
+    var destinoInicial by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        SesionManager.restaurar(context)
+        destinoInicial = when {
+            SesionActual.esAdmin() -> Routes.ADMIN_PRODUCTS
+            SesionActual.activa() -> Routes.PRINCIPAL
+            else -> Routes.SUPERHERO
+        }
+    }
+
+    val inicio = destinoInicial ?: return
+
     fun irA(ruta: String) {
         navController.navigate(ruta) {
             popUpTo(Routes.PRINCIPAL)
@@ -51,9 +76,17 @@ fun AppNavigation() {
         }
     }
 
+    fun cerrarSesion() {
+        SesionManager.cerrar(context)
+        navController.navigate(Routes.LOGIN) {
+            popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
     NavHost(
         navController = navController,
-        startDestination = Routes.SUPERHERO,
+        startDestination = inicio,
         // Animaciones de transición entre pantallas
         enterTransition = { slideInHorizontally(initialOffsetX = { it / 4 }) + fadeIn() },
         exitTransition = { fadeOut() },
@@ -73,17 +106,25 @@ fun AppNavigation() {
                 onNavigateToRegister = {
                     navController.navigate(Routes.REGISTER)
                 },
-                onLoginSuccess = { esAdmin ->
-                    if (esAdmin) {
-                        navController.navigate(Routes.ADMIN_PRODUCTS) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(Routes.PRINCIPAL) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
+                onNavigateToAdminLogin = {
+                    navController.navigate(Routes.ADMIN_LOGIN)
+                },
+                onLoginSuccess = {
+                    navController.navigate(Routes.PRINCIPAL) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Routes.ADMIN_LOGIN) {
+            LoginAdmin(
+                onLoginExitoso = {
+                    navController.navigate(Routes.ADMIN_PRODUCTS) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                },
+                onVolverClick = { navController.popBackStack() }
             )
         }
 
@@ -101,14 +142,14 @@ fun AppNavigation() {
             Principal(
                 onReservarClick = { navController.navigate(Routes.CATALOG) },
                 onNavigateToCatalog = { navController.navigate(Routes.CATALOG) },
-                onNavigateToReservations = { navController.navigate(Routes.RESERVATIONS) }
+                onNavigateToReservations = { navController.navigate(Routes.RESERVATIONS) },
+                onCerrarSesionClick = { cerrarSesion() }
             )
         }
 
         composable(Routes.CATALOG) {
             CatalogScreen(
                 onProductoClick = { producto ->
-                    // Al elegir un producto se abre la cotización de ese producto
                     navController.navigate(Routes.quoter(producto.id))
                 },
                 onNavigateToHome = { irA(Routes.PRINCIPAL) },
@@ -125,7 +166,6 @@ fun AppNavigation() {
                 productoId = productoId,
                 onBackClick = { navController.popBackStack() },
                 onReservaGuardada = { reservaId ->
-                    // Se reemplaza el formulario por la pantalla de comprobante
                     navController.navigate(Routes.uploadReceipt(reservaId)) {
                         popUpTo(Routes.CATALOG)
                     }
@@ -166,13 +206,10 @@ fun AppNavigation() {
                 onEditarClick = { productoId ->
                     navController.navigate(Routes.adminForm(productoId))
                 },
-                onCerrarSesionClick = {
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.ADMIN_PRODUCTS) { inclusive = true }
-                    }
-                }
+                onCerrarSesionClick = { cerrarSesion() }
             )
         }
+
         composable(
             route = Routes.ADMIN_FORM,
             arguments = listOf(navArgument("productoId") { type = NavType.IntType })
@@ -184,6 +221,5 @@ fun AppNavigation() {
                 onGuardado = { navController.popBackStack() }
             )
         }
-
     }
 }

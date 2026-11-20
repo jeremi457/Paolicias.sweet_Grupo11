@@ -14,24 +14,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import com.example.myappnavigation.ui.components.Footer
-import com.example.myappnavigation.ui.components.Header
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myappnavigation.data.session.SesionActual
+import com.example.myappnavigation.ui.components.Footer
+import com.example.myappnavigation.ui.components.Header
 import com.example.myappnavigation.ui.viewmodel.LoginViewModel
-import com.example.myappnavigation.ui.screen.Register
 
 @Composable
 fun Login(
     onNavigateToRegister: () -> Unit,
-    onLoginSuccess: (esAdmin: Boolean) -> Unit,
+    onNavigateToAdminLogin: () -> Unit,
+    onLoginSuccess: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
     val state = viewModel.uiState
@@ -52,7 +54,6 @@ fun Login(
             Text("L o g i n", style = MaterialTheme.typography.headlineMedium)
 
             Spacer(modifier = Modifier.height(24.dp))
-
 
             OutlinedTextField(
                 value = state.email,
@@ -86,10 +87,13 @@ fun Login(
 
             Button(
                 onClick = {
-                    viewModel.onLoginClick(context) { nombre, esAdmin ->
-                        Toast.makeText(context, "¡Bienvenid@, $nombre!",
-                            Toast.LENGTH_SHORT).show()
-                        onLoginSuccess(esAdmin)
+                    viewModel.onLoginClick(context) {
+                        Toast.makeText(
+                            context,
+                            "¡Bienvenid@, ${SesionActual.nombre}!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        onLoginSuccess()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -99,12 +103,17 @@ fun Login(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
             Button(
                 onClick = { onNavigateToRegister() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Ir a Registro")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(onClick = { onNavigateToAdminLogin() }) {
+                Text(text = "Acceso administrador")
             }
         }
     }
