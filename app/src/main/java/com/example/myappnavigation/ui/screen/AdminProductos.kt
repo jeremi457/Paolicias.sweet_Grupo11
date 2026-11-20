@@ -29,13 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.myappnavigation.data.local.entity.ProductoEntity
+import com.example.myappnavigation.data.remote.ProductoDto
 import com.example.myappnavigation.model.CatalogoData
 import com.example.myappnavigation.ui.viewmodel.AdminProductosViewModel
 import java.text.NumberFormat
@@ -48,13 +47,12 @@ fun AdminProductosScreen(
     onCerrarSesionClick: () -> Unit = {},
     viewModel: AdminProductosViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val productos = viewModel.productos
     val formatoMoneda =
         NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))
 
     LaunchedEffect(Unit) {
-        viewModel.cargarProductos(context)
+        viewModel.cargarProductos()
     }
 
     Scaffold(
@@ -112,6 +110,12 @@ fun AdminProductosScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
+                    if (viewModel.cargando) {
+                        Text(text = "Cargando productos...", color = Color.Gray)
+                    }
+                    if (viewModel.errorMessage != null) {
+                        Text(text = viewModel.errorMessage!!, color = Color.Red)
+                    }
                 }
 
                 productos.forEach { producto ->
@@ -119,8 +123,7 @@ fun AdminProductosScreen(
                         producto = producto,
                         formatoMoneda = formatoMoneda,
                         onEditarClick = { onEditarClick(producto.id) },
-                        onCambiarEstadoClick = {
-                            viewModel.cambiarActivo(context, producto) }
+                        onCambiarEstadoClick = { viewModel.cambiarActivo(producto) }
                     )
                 }
             }
@@ -152,7 +155,7 @@ fun AdminProductosScreen(
 
 @Composable
 fun TarjetaProductoAdmin(
-    producto: ProductoEntity,
+    producto: ProductoDto,
     formatoMoneda: NumberFormat,
     onEditarClick: () -> Unit,
     onCambiarEstadoClick: () -> Unit

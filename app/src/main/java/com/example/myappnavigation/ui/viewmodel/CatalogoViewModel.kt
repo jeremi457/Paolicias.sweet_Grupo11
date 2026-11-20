@@ -1,25 +1,34 @@
 package com.example.myappnavigation.ui.viewmodel
 
-import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myappnavigation.data.database.AppDatabase
-import com.example.myappnavigation.data.local.entity.ProductoEntity
-import com.example.myappnavigation.model.CatalogoData
+import com.example.myappnavigation.data.remote.ProductoDto
+import com.example.myappnavigation.data.repository.CatalogoRepository
 import kotlinx.coroutines.launch
 
 class CatalogoViewModel : ViewModel() {
-    var productos by mutableStateOf<List<ProductoEntity>>(emptyList())
+
+    private val repository = CatalogoRepository()
+    var productos by mutableStateOf<List<ProductoDto>>(emptyList())
         private set
-    fun cargarProductos(context: Context) {
-        val appContext = context.applicationContext
+    var cargando by mutableStateOf(false)
+        private set
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+    fun cargarProductos() {
+        cargando = true
+        errorMessage = null
         viewModelScope.launch {
-            val dao = AppDatabase.getDatabase(appContext).productoDao()
-            CatalogoData.sembrarSiVacio(dao)
-            productos = dao.obtenerActivos()
+            val resultado = repository.listarActivos()
+            cargando = false
+            if (resultado.isSuccess) {
+                productos = resultado.getOrThrow()
+            } else {
+                errorMessage = resultado.exceptionOrNull()?.message
+            }
         }
     }
 }
