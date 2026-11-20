@@ -57,7 +57,7 @@ fun ReservaScreen(
 
 
     LaunchedEffect(productoId) {
-        viewModel.seleccionarProducto(context, productoId)
+        viewModel.seleccionarProducto(productoId)
     }
 
     Scaffold(

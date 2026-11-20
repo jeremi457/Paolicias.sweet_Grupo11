@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myappnavigation.model.CatalogoData
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.Button
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.myappnavigation.data.local.entity.ProductoEntity
+import com.example.myappnavigation.data.remote.ProductoDto
 import com.example.myappnavigation.ui.viewmodel.CatalogoViewModel
 import com.example.myappnavigation.ui.components.BarraInferior
 import java.text.NumberFormat
@@ -45,17 +45,16 @@ import androidx.compose.ui.res.painterResource
 
 @Composable
 fun CatalogScreen(
-    onProductoClick: (ProductoEntity) -> Unit = {},
+    onProductoClick: (ProductoDto) -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToReservations: () -> Unit = {},
     viewModel: CatalogoViewModel = viewModel()
 ) {
 
-    val context = LocalContext.current
     val productos = viewModel.productos
 
     LaunchedEffect(Unit) {
-        viewModel.cargarProductos(context)
+        viewModel.cargarProductos()
     }
 
     Scaffold(
@@ -122,6 +121,15 @@ fun CatalogScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                if (viewModel.cargando) {
+                    Text(text = "Cargando productos...", color = Color.Gray)
+                }
+                if (viewModel.errorMessage != null) {
+                    Text(text = viewModel.errorMessage!!, color = Color.Red)
+                    Button(onClick = { viewModel.cargarProductos() }) {
+                        Text("Reintentar")
+                    }
+                }
 
                 productos.chunked(2).forEach { parDeProductos ->
                     Row(
@@ -158,7 +166,7 @@ fun CatalogScreen(
 
 @Composable
 fun TarjetaProducto(
-    producto: ProductoEntity,
+    producto: ProductoDto,
     onClick: () -> Unit
 ) {
     val formatoMoneda = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))

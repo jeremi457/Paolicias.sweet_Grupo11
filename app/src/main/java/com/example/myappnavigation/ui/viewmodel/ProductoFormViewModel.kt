@@ -1,40 +1,42 @@
 package com.example.myappnavigation.ui.viewmodel
 
-import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myappnavigation.data.database.AppDatabase
-import com.example.myappnavigation.data.local.entity.ProductoEntity
+import com.example.myappnavigation.data.remote.ProductoDto
+import com.example.myappnavigation.data.repository.CatalogoRepository
 import com.example.myappnavigation.model.ProductoFormModel
 import kotlinx.coroutines.launch
 
-class ProductoFormViewModel: ViewModel() {
-
+class ProductoFormViewModel : ViewModel() {
+    private val repository = CatalogoRepository()
     var uiState by mutableStateOf(ProductoFormModel())
         private set
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+    var guardando by mutableStateOf(false)
+        private set
 
-    private var productoActual: ProductoEntity? = null
-    fun cargarProducto(context: Context, id: Int) {
+    private var productoActual: ProductoDto? = null
+    fun cargarProducto(id: Int) {
         if (id == 0 || productoActual != null) return
-        val appContext = context.applicationContext
-
         viewModelScope.launch {
-            val producto =
-                AppDatabase.getDatabase(appContext).productoDao().obtenerPorId(id)
-            if (producto != null) {
+            val resultado = repository.obtener(id)
+            if (resultado.isSuccess) {
+                val producto = resultado.getOrThrow()
                 productoActual = producto
                 uiState = uiState.copy(
                     nombre = producto.nombre,
                     precio = producto.precioBase.toString(),
                     imagen = producto.imagen
                 )
+            } else {
+                errorMessage = resultado.exceptionOrNull()?.message
             }
         }
     }
-
     fun onNombreChanged(valor: String) {
         uiState = uiState.copy(nombre = valor, nombreError =
             validarNombre(valor))
@@ -51,38 +53,31 @@ class ProductoFormViewModel: ViewModel() {
         val s = uiState
         val nombreError = validarNombre(s.nombre)
         val precioError = validarPrecio(s.precio)
-        uiState = s.copy(nombreError = nombreError, precioError =
-            precioError)
+        uiState = s.copy(nombreError = nombreError, precioError = precioError)
         return nombreError == null && precioError == null
     }
-
-    fun guardarProducto(context: Context, onSuccess: () -> Unit) {
+    fun guardarProducto(onSuccess: () -> Unit) {
+        if (guardando) return
         val s = uiState
-        val appContext = context.applicationContext
-        viewModelScope.launch {
-            val dao = AppDatabase.getDatabase(appContext).productoDao()
-            val actual = productoActual
-            if (actual == null) {
-                dao.insertar(
-                    ProductoEntity(
-                        nombre = s.nombre.trim(),
-                        precioBase = s.precio.toInt(),
-                        imagen = s.imagen
-                    )
-                )
+        val actual = productoActual
+        guardando = true
+        errorMessage = null
+
+        viewModelScope.launch{
+            val resultado = if (actual == null) {
+                repository.crear(s.nombre.trim(), s.precio.toInt(), s.imagen)
             } else {
-                dao.actualizar(
-                    actual.copy(
-                        nombre = s.nombre.trim(),
-                        precioBase = s.precio.toInt(),
-                        imagen = s.imagen
-                    )
-                )
+                repository.actualizar(actual.id, s.nombre.trim(),
+                    s.precio.toInt(), s.imagen)
             }
-            onSuccess()
+            guardando = false
+            if (resultado.isSuccess) {
+                onSuccess()
+            } else {
+                errorMessage = resultado.exceptionOrNull()?.message
+            }
         }
     }
-
     private fun validarNombre(nombre: String): String? {
         if (nombre.isBlank()) return "Ingresa el nombre del producto"
         if (nombre.length > 40) return "Máximo 40 caracteres"
@@ -94,3 +89,4 @@ class ProductoFormViewModel: ViewModel() {
         return null
     }
 }
+

@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myappnavigation.model.CatalogoData
 import com.example.myappnavigation.ui.viewmodel.ProductoFormViewModel
+import com.example.myappnavigation.ui.components.MensajeError
 
 @Composable
 fun AdminProductoFormScreen(
@@ -50,7 +51,7 @@ fun AdminProductoFormScreen(
 
 
     LaunchedEffect(productoId) {
-        viewModel.cargarProducto(context, productoId)
+        viewModel.cargarProducto(productoId)
     }
     Scaffold(
         containerColor = Color(0xFFF5F6FA)
@@ -166,19 +167,20 @@ fun AdminProductoFormScreen(
                         .height(160.dp)
                         .clip(RoundedCornerShape(12.dp))
                 )
+                MensajeError(viewModel.errorMessage)
                 Button(
                     onClick = {
                         if (viewModel.validarFormulario()) {
-                            viewModel.guardarProducto(context) {
+                            viewModel.guardarProducto {
                                 Toast.makeText(context, "Producto guardado",
                                     Toast.LENGTH_SHORT).show()
                                 onGuardado()
                             }
                         }
                     },
+                    enabled = !viewModel.guardando,
                     shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor =
-                        Color(0xFF4C5BF5)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4C5BF5)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp)

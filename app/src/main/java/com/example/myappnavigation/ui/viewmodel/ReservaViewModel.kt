@@ -17,6 +17,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import com.example.myappnavigation.data.repository.CatalogoRepository
 
 /**
  * ViewModel encargado del formulario de cotizacion y reserva de eventos.
@@ -30,16 +31,16 @@ class ReservaViewModel : ViewModel() {
     var guardando by mutableStateOf(false)
         private set
 
-    fun seleccionarProducto(context: Context, productoId: Int) {
+    fun seleccionarProducto(productoId: Int) {
         if (uiState.productoId == productoId) return
-        val appContext = context.applicationContext
         viewModelScope.launch {
-            val producto =
-                AppDatabase.getDatabase(appContext).productoDao().obtenerPorId(productoId)
-            uiState = uiState.copy(
-                productoId = productoId,
-                productoNombre = producto?.nombre ?: "",
-                precioBase = producto?.precioBase ?: 0
+            val resultado = CatalogoRepository().obtener(productoId)
+            if (resultado.isSuccess) {
+                val producto = resultado.getOrThrow()
+                uiState = uiState.copy(
+                    productoId = producto.id,
+                    productoNombre = producto.nombre,
+                    precioBase = producto.precioBase
             )
         }
     }
