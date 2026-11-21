@@ -159,7 +159,8 @@ fun TarjetaReserva(
     mostrarBotonPago: Boolean = true,
     mostrarCliente: Boolean = false
 ) {
-    val puedePagar = reserva.estado == EstadoReserva.PENDIENTE_PAGO
+    val puedePagar = reserva.estado == EstadoReserva.PENDIENTE_PAGO ||
+            reserva.estado == EstadoReserva.RECHAZADA
     val (colorFondo, colorTexto) = when (reserva.estado) {
         EstadoReserva.CONFIRMADA -> Color(0xFFE2F0D9) to Color(0xFF2E7D32)
         EstadoReserva.RECHAZADA -> Color(0xFFFDE0E0) to Color(0xFFC62828)
@@ -249,7 +250,7 @@ fun TarjetaReserva(
                             Color(0xFFEEF0FE))
                     ) {
                         Text(
-                            text = "Subir pago",
+                            text = if (reserva.estado == EstadoReserva.RECHAZADA) "Subir otro" else "Subir pago",
                             color = Color(0xFF4C5BF5),
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp

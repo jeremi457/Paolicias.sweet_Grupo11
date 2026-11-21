@@ -199,7 +199,9 @@ fun UploadReceiptScreen(
                 MensajeError(viewModel.errorMessage)
 
                 Button(
-                    onClick = { viewModel.confirmarComprobante(context, onComprobanteEnviado) },
+                    onClick = { viewModel.confirmarComprobante(context, onComprobanteEnviado)
+                    },
+                    enabled = !viewModel.enviando,
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4C5BF5)),
                     modifier = Modifier
@@ -207,8 +209,8 @@ fun UploadReceiptScreen(
                         .height(54.dp)
                 ) {
                     Text(
-                        text = "Enviar comprobante",
-                        fontSize = 15.sp,
+                        text = if (viewModel.enviando) "Enviando..." else "Enviar comprobante",
+                                fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }

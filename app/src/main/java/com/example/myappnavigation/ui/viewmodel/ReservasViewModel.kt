@@ -8,12 +8,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myappnavigation.data.remote.ReservaDto
+import com.example.myappnavigation.data.repository.PagosRepository
 import com.example.myappnavigation.data.repository.ReservasRepository
 import com.example.myappnavigation.data.session.SesionActual
+import com.example.myappnavigation.util.ImagenUtil
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ReservasViewModel : ViewModel() {
     private val repository = ReservasRepository()
+    private val pagosRepository = PagosRepository()
     var reservas by mutableStateOf<List<ReservaDto>>(emptyList())
         private set
     var reservaActual by mutableStateOf<ReservaDto?>(null)
@@ -22,8 +27,11 @@ class ReservasViewModel : ViewModel() {
         private set
     var cargando by mutableStateOf(false)
         private set
+    var enviando by mutableStateOf(false)
+        private set
     var errorMessage by mutableStateOf<String?>(null)
         private set
+
     // El administrador ve todas las reservas; el cliente, solo las suyas
     fun cargarReservas() {
         cargando = true
@@ -56,8 +64,33 @@ class ReservasViewModel : ViewModel() {
         imagenUri = uri
         errorMessage = null
     }
-    // Se completa en la Guía 4, con pagos-service
+    // Comprime la imagen elegida y la envía a pagos-service
     fun confirmarComprobante(context: Context, onSuccess: () -> Unit) {
-        errorMessage = "El envío del comprobante se activa en la Guía 4(pagos-service)."
+        if (enviando) return
+        val reserva = reservaActual ?: return
+        val uri = imagenUri
+        if (uri == null) {
+            errorMessage = "Debes seleccionar una imagen del comprobante"
+            return
+        }
+        val appContext = context.applicationContext
+        enviando = true
+        errorMessage = null
+        viewModelScope.launch {
+            val bytes = withContext(Dispatchers.IO) {
+                ImagenUtil.comprimir(appContext, uri) }
+            if (bytes == null) {
+                enviando = false
+                errorMessage = "No se pudo leer la imagen. Intenta con otra."
+                return@launch
+            }
+            val resultado = pagosRepository.subirComprobante(reserva.id, bytes)
+            enviando = false
+            if (resultado.isSuccess) {
+                onSuccess()
+            } else {
+                errorMessage = resultado.exceptionOrNull()?.message
+            }
+        }
     }
 }
