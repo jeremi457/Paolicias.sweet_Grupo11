@@ -6,8 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myappnavigation.data.database.AppDatabase
-import com.example.myappnavigation.data.local.entity.ReservaEntity
 import com.example.myappnavigation.model.CatalogoData
 import com.example.myappnavigation.model.ReservaModel
 import com.example.myappnavigation.model.Tarifario
@@ -18,6 +16,10 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import com.example.myappnavigation.data.repository.CatalogoRepository
+import com.example.myappnavigation.data.repository.ReservasRepository
+import com.example.myappnavigation.data.remote.ReservaRequest
+import com.example.myappnavigation.data.session.SesionActual
+import com.example.myappnavigation.util.FechaUtil
 
 /**
  * ViewModel encargado del formulario de cotizacion y reserva de eventos.
@@ -95,35 +97,42 @@ class ReservaViewModel : ViewModel() {
                 s.precioBase > 0
     }
 
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
     fun guardarReserva(context: Context, onSuccess: (Int) -> Unit) {
         if (guardando) return
         val s = uiState
-        val appContext = context.applicationContext
-        guardando = true
+        val email = SesionActual.email
+        if (email == null) {
+            errorMessage = "Inicia sesión para reservar."
+            return
+        }
 
+        guardando = true
+        errorMessage = null
         viewModelScope.launch {
-            val db = AppDatabase.getDatabase(appContext)
-            val id = db.reservaDao().insertar(
-                ReservaEntity(
+            val resultado = ReservasRepository().crear(
+                ReservaRequest(
+                    clienteEmail = email,
                     productoId = s.productoId,
-                    productoNombre = s.productoNombre,
-                    fecha = s.fecha,
+                    fecha = FechaUtil.aIso(s.fecha),
                     horario = s.horario,
                     asistentes = s.asistentes,
                     telefono = s.telefono,
-                    observaciones = s.observaciones,
-                    total = s.total,
-                    abono = s.abono
+                    observaciones = s.observaciones
                 )
-            ).toInt()
-
+            )
             guardando = false
-            try {
-                vibrar(context, 400)
-            } catch (e: Throwable) {
-                android.util.Log.e("ReservaViewModel", "Error al vibrar en reserva: ${e.message}", e)
+            if (resultado.isSuccess) {
+                try {
+                    vibrar(context, 400)
+                } catch (e: Throwable) {
+                    android.util.Log.e("ReservaViewModel", "Error al vibrar en reserva: ${e.message}", e)
+                }
+                onSuccess(resultado.getOrThrow().id)
+            } else {
+                errorMessage = resultado.exceptionOrNull()?.message
             }
-            onSuccess(id)
         }
     }
 

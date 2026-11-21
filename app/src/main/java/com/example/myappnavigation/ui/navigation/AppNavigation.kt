@@ -30,6 +30,7 @@ import com.example.myappnavigation.ui.screen.ReservaScreen
 import com.example.myappnavigation.ui.screen.ReservationsScreen
 import com.example.myappnavigation.ui.screen.ScreenHeroe
 import com.example.myappnavigation.ui.screen.UploadReceiptScreen
+import com.example.myappnavigation.ui.screen.AdminReservasScreen
 
 object Routes {
     const val SUPERHERO = "superhero"
@@ -39,6 +40,8 @@ object Routes {
     const val PRINCIPAL = "principal"
     const val CATALOG = "catalog"
     const val RESERVATIONS = "reservations"
+
+    const val ADMIN_RESERVATIONS = "admin_reservations"
 
     const val QUOTER = "quoter/{productoId}"
     const val UPLOAD_RECEIPT = "upload_receipt/{reservaId}"
@@ -202,11 +205,18 @@ fun AppNavigation() {
 
         composable(Routes.ADMIN_PRODUCTS) {
             AdminProductosScreen(
+                onVerReservasClick = { navController.navigate(Routes.ADMIN_RESERVATIONS) },
                 onNuevoClick = { navController.navigate(Routes.adminForm(0)) },
                 onEditarClick = { productoId ->
                     navController.navigate(Routes.adminForm(productoId))
                 },
                 onCerrarSesionClick = { cerrarSesion() }
+            )
+        }
+
+        composable(Routes.ADMIN_RESERVATIONS) {
+            AdminReservasScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 

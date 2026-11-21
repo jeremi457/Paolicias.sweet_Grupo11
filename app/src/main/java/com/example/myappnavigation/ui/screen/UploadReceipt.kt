@@ -58,7 +58,7 @@ fun UploadReceiptScreen(
     val reserva = viewModel.reservaActual
 
     LaunchedEffect(reservaId) {
-        viewModel.cargarReserva(context, reservaId)
+        viewModel.cargarReserva(reservaId)
     }
 
     val galeria = rememberLauncherForActivityResult(
