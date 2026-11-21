@@ -24,17 +24,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.myappnavigation.data.local.entity.EstadoReserva
-import com.example.myappnavigation.data.local.entity.ReservaEntity
 import com.example.myappnavigation.ui.components.BarraInferior
 import com.example.myappnavigation.ui.viewmodel.ReservasViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import com.example.myappnavigation.data.remote.ReservaDto
+import com.example.myappnavigation.model.EstadoReserva
+import com.example.myappnavigation.util.FechaUtil
 
 @Composable
 fun ReservationsScreen(
@@ -43,13 +43,12 @@ fun ReservationsScreen(
     onSubirComprobanteClick: (reservaId: Int) -> Unit = {},
     viewModel: ReservasViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val reservas = viewModel.reservas
     val formatoMoneda = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))
 
     // Lee las reservas guardadas en Room al abrir la pantalla
     LaunchedEffect(Unit) {
-        viewModel.cargarReservas(context)
+        viewModel.cargarReservas()
     }
 
     Scaffold(
@@ -86,7 +85,17 @@ fun ReservationsScreen(
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (reservas.isEmpty()) {
+                if (viewModel.cargando) {
+                    Text(text = "Cargando reservas...", color = Color.Gray)
+                }
+                if (viewModel.errorMessage != null) {
+                    Text(text = viewModel.errorMessage!!, color = Color.Red)
+                    Button(onClick = { viewModel.cargarReservas() }) {
+                        Text("Reintentar")
+                    }
+                }
+
+                if (reservas.isEmpty() && !viewModel.cargando && viewModel.errorMessage == null) {
                     Card(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -144,12 +153,20 @@ fun ReservationsScreen(
 
 @Composable
 fun TarjetaReserva(
-    reserva: ReservaEntity,
+    reserva: ReservaDto,
     formatoMoneda: NumberFormat,
-    onSubirComprobanteClick: () -> Unit
+    onSubirComprobanteClick: () -> Unit,
+    mostrarBotonPago: Boolean = true,
+    mostrarCliente: Boolean = false
 ) {
-    val comprobanteEnviado = reserva.estado == EstadoReserva.COMPROBANTE_ENVIADO
-
+    val puedePagar = reserva.estado == EstadoReserva.PENDIENTE_PAGO
+    val (colorFondo, colorTexto) = when (reserva.estado) {
+        EstadoReserva.CONFIRMADA -> Color(0xFFE2F0D9) to Color(0xFF2E7D32)
+        EstadoReserva.RECHAZADA -> Color(0xFFFDE0E0) to Color(0xFFC62828)
+        EstadoReserva.COMPROBANTE_ENVIADO -> Color(0xFFDDE3FF) to
+                Color(0xFF3F4BC4)
+        else -> Color(0xFFFFF3D6) to Color(0xFFB78103)
+    }
     Card(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -160,78 +177,76 @@ fun TarjetaReserva(
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Fecha y etiqueta de estado
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            ){
                 Text(
-                    text = "Evento ${reserva.fecha}",
+                    text = "Evento ${FechaUtil.aVista(reserva.fecha)}",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF222222)
                 )
-
                 Box(
                     modifier = Modifier
-                        .background(
-                            color = if (comprobanteEnviado) Color(0xFFE2F0D9) else Color(0xFFFFF3D6),
-                            shape = RoundedCornerShape(8.dp)
-                        )
+                        .background(color = colorFondo, shape =
+                            RoundedCornerShape(8.dp))
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = reserva.estado,
+                        text = EstadoReserva.texto(reserva.estado),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (comprobanteEnviado) Color(0xFF2E7D32) else Color(0xFFB78103)
-                    )
-                }
+                        color = colorTexto
+                    )}
             }
-
             Text(
                 text = reserva.productoNombre,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF222222)
             )
-
+            if (mostrarCliente) {
+                Text(
+                    text = "Cliente: ${reserva.clienteEmail} • Tel.${reserva.telefono}",
+                fontSize = 13.sp,
+                color = Color(0xFF555555)
+                )
+            }
             Text(
                 text = "Horario: ${reserva.horario} • ${reserva.asistentes} asistentes",
-                fontSize = 14.sp,
+                        fontSize = 14.sp,
                 color = Color.Gray
             )
-
-            if (reserva.observaciones.isNotBlank()) {
+            if (!reserva.observaciones.isNullOrBlank()) {
                 Text(
                     text = "Notas: \"${reserva.observaciones}\"",
                     fontSize = 13.sp,
                     color = Color(0xFF555555)
                 )
             }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(text = "Total: ${formatoMoneda.format(reserva.total)}", fontSize = 13.sp, color = Color.Gray)
+                    Text(text = "Total:${formatoMoneda.format(reserva.total)}", fontSize = 13.sp, color =Color.Gray)
                     Text(
-                        text = "Abono 50%: ${formatoMoneda.format(reserva.abono)}",
+                        text = "Abono 50%:${formatoMoneda.format(reserva.abono)}",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4C5BF5)
                     )
                 }
-
-                // Solo se puede subir el pago si aún no se envió comprobante
-                if (!comprobanteEnviado) {
+                // Solo el cliente, y solo si aún no pagó, ve el botón de subir el comprobante
+                if (mostrarBotonPago && puedePagar) {
                     Button(
                         onClick = onSubirComprobanteClick,
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEEF0FE))
+                        colors = ButtonDefaults.buttonColors(containerColor =
+                            Color(0xFFEEF0FE))
                     ) {
                         Text(
                             text = "Subir pago",
@@ -245,3 +260,4 @@ fun TarjetaReserva(
         }
     }
 }
+

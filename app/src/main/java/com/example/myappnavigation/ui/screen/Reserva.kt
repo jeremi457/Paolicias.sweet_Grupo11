@@ -288,6 +288,7 @@ fun ReservaScreen(
                 }
 
                 // Botón Confirmar Reserva
+                MensajeError(viewModel.errorMessage)
                 Button(
                     onClick = {
                         if (viewModel.validarFormulario()) {

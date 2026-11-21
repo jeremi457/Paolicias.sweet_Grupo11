@@ -4,26 +4,22 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.myappnavigation.data.local.dao.ReservaDao
 import com.example.myappnavigation.data.local.dao.SesionDao
 import com.example.myappnavigation.data.local.dao.UsuarioDao
-import com.example.myappnavigation.data.local.entity.ReservaEntity
 import com.example.myappnavigation.data.local.entity.SesionEntity
 import com.example.myappnavigation.data.local.entity.UsuarioEntity
 
 @Database(
     entities = [
         UsuarioEntity::class,
-        ReservaEntity::class,
         SesionEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun usuarioDao(): UsuarioDao
-    abstract fun reservaDao(): ReservaDao
     abstract fun sesionDao(): SesionDao
 
     companion object {

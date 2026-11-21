@@ -45,6 +45,7 @@ fun AdminProductosScreen(
     onNuevoClick: () -> Unit = {},
     onEditarClick: (productoId: Int) -> Unit = {},
     onCerrarSesionClick: () -> Unit = {},
+    onVerReservasClick: () -> Unit = {},
     viewModel: AdminProductosViewModel = viewModel()
 ) {
     val productos = viewModel.productos
@@ -110,6 +111,20 @@ fun AdminProductosScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
+                    Button(
+                        onClick = onVerReservasClick,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEEF0FE)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Text(
+                            text = "Ver reservas",
+                            color = Color(0xFF4C5BF5),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     if (viewModel.cargando) {
                         Text(text = "Cargando productos...", color = Color.Gray)
                     }
