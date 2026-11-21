@@ -9,6 +9,8 @@ import com.example.myappnavigation.data.remote.ReservaDto
 import com.example.myappnavigation.data.repository.PagosRepository
 import com.example.myappnavigation.data.repository.ReservasRepository
 import kotlinx.coroutines.launch
+import android.content.Context
+import com.example.myappnavigation.ui.screen.vibrar
 
 class AdminReservasViewModel : ViewModel() {
     private val reservasRepository = ReservasRepository()
@@ -51,11 +53,17 @@ class AdminReservasViewModel : ViewModel() {
         comprobante = null
     }
     // aprobado = true confirma la reserva; false la rechaza
-    fun validar(reservaId: Int, aprobado: Boolean) {
+    fun validar(reservaId: Int, aprobado: Boolean, context: Context) {
+        val appContext = context.applicationContext
         errorMessage = null
         viewModelScope.launch {
             val resultado = pagosRepository.validar(reservaId, aprobado)
             if (resultado.isSuccess) {
+                try {
+                    vibrar(appContext, 400)
+                } catch (e: Throwable) {
+                    android.util.Log.e("AdminReservasViewModel", "Error al vibrar al validar: ${e.message}", e)
+                }
                 cargarReservas()
             } else {
                 errorMessage = resultado.exceptionOrNull()?.message

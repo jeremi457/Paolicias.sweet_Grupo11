@@ -132,13 +132,22 @@ fun ReservaScreen(
                 }
 
                 // Fecha
-                CampoFormulario(
-                    titulo = "Fecha del evento",
-                    valor = state.fecha,
-                    placeholder = "dd/mm/aaaa",
-                    error = state.fechaError,
-                    onValueChange = { viewModel.onFechaChanged(it) }
-                )
+                Box {
+                    CampoFormulario(
+                        titulo = "Fecha del evento",
+                        valor = state.fecha,
+                        placeholder = "Toca para elegir la fecha",
+                        error = state.fechaError,
+                        onValueChange = {}
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable {
+                                abrirCalendario(context) { viewModel.onFechaChanged(it) }
+                            }
+                    )
+                }
 
                 // Horario (tres opciones)
                 Column {

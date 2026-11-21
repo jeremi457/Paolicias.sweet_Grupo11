@@ -39,6 +39,7 @@ import com.example.myappnavigation.model.EstadoReserva
 import com.example.myappnavigation.ui.viewmodel.AdminReservasViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun AdminReservasScreen(
@@ -47,6 +48,8 @@ fun AdminReservasScreen(
 ) {
     val formatoMoneda =
         NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         viewModel.cargarReservas()
     }
@@ -171,8 +174,7 @@ fun AdminReservasScreen(
                                     )
                                 }
                                 Button(
-                                    onClick = { viewModel.validar(reserva.id,
-                                        true) },
+                                    onClick = { viewModel.validar(reserva.id, true, context) },
                                     shape = RoundedCornerShape(10.dp),
                                     colors =
                                         ButtonDefaults.buttonColors(containerColor = Color(0xFF4C5BF5)),
@@ -186,8 +188,7 @@ fun AdminReservasScreen(
                                     )
                                 }
                                 Button(
-                                    onClick = { viewModel.validar(reserva.id,
-                                        false) },
+                                    onClick = { viewModel.validar(reserva.id, false, context) },
                                     shape = RoundedCornerShape(10.dp),
                                     colors =
                                         ButtonDefaults.buttonColors(containerColor = Color(0xFFFDE0E0)),
