@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -79,12 +78,16 @@ fun AppNavigation() {
         }
     }
 
-    fun cerrarSesion() {
-        SesionManager.cerrar(context)
-        navController.navigate(Routes.LOGIN) {
-            popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+    fun irARaiz(ruta: String) {
+        navController.navigate(ruta) {
+            popUpTo(navController.graph.id) { inclusive = true }
             launchSingleTop = true
         }
+    }
+
+    fun cerrarSesion() {
+        SesionManager.cerrar(context)
+        irARaiz(Routes.LOGIN)
     }
 
     NavHost(
@@ -112,21 +115,13 @@ fun AppNavigation() {
                 onNavigateToAdminLogin = {
                     navController.navigate(Routes.ADMIN_LOGIN)
                 },
-                onLoginSuccess = {
-                    navController.navigate(Routes.PRINCIPAL) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
-                    }
-                }
+                onLoginSuccess = { irARaiz(Routes.PRINCIPAL) }
             )
         }
 
         composable(Routes.ADMIN_LOGIN) {
             LoginAdmin(
-                onLoginExitoso = {
-                    navController.navigate(Routes.ADMIN_PRODUCTS) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
-                    }
-                },
+                onLoginExitoso = { irARaiz(Routes.ADMIN_PRODUCTS) },
                 onVolverClick = { navController.popBackStack() }
             )
         }
