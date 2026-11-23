@@ -1,12 +1,33 @@
 package com.example.myappnavigation.data.remote
 
 object ApiConfig {
-    // Emulador de Android Studio: 10.0.2.2 apunta al computador donde corre Docker.
-    // Celular real: cambia HOST por la IP del computador, por ejemplo http://192.168.1.50
-    // Nube: usa la URL https de cada servicio.
-    private const val HOST = "http://10.0.2.2"
-    const val AUTH_URL = "$HOST:8081/"
-    const val CATALOGO_URL = "$HOST:8082/"
-    const val RESERVAS_URL = "$HOST:8083/"
-    const val PAGOS_URL = "$HOST:8084/"
+
+    private const val USE_RENDER = true
+
+    private const val LOCAL_HOST = "http://10.0.2.2"
+
+    val AUTH_URL = if (USE_RENDER) {
+        "https://auth-service-740w.onrender.com/"
+    } else {
+        "$LOCAL_HOST:8081/"
+    }
+
+    // Reemplaza estas 3 URLs a medida que despliegues cada microservicio en Render
+    val CATALOGO_URL = if (USE_RENDER) {
+        "https://catalogo-service-m6mq.onrender.com/"
+    } else {
+        "$LOCAL_HOST:8082/"
+    }
+
+    val RESERVAS_URL = if (USE_RENDER) {
+        "https://TU-RESERVAS-SERVICE.onrender.com/"
+    } else {
+        "$LOCAL_HOST:8083/"
+    }
+
+    val PAGOS_URL = if (USE_RENDER) {
+        "https://TU-PAGOS-SERVICE.onrender.com/"
+    } else {
+        "$LOCAL_HOST:8084/"
+    }
 }

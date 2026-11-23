@@ -14,19 +14,26 @@ object RetrofitFactory {
 
     private val cliente = OkHttpClient.Builder()
         .addInterceptor { chain ->
+            val original = chain.request()
+            val path = original.url.encodedPath
             val token = SesionActual.token
-            val peticion = if (token != null) {
-                chain.request().newBuilder()
+
+            // Evita enviar un token viejo/expirado al hacer login o registro
+            val esRutaPublica = path.contains("/login") || path.contains("/register")
+
+            val peticion = if (!token.isNullOrBlank() && !esRutaPublica) {
+                original.newBuilder()
                     .header("Authorization", "Bearer $token")
                     .build()
             } else {
-                chain.request()
+                original
             }
             chain.proceed(peticion)
         }
         .addInterceptor(logging)
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
         .build()
 
     fun <T> crear(baseUrl: String, api: Class<T>): T {
