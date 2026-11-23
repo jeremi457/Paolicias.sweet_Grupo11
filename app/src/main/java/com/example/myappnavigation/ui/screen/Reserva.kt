@@ -264,6 +264,24 @@ fun ReservaScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        // Desglose del calculo para que sea facil de entender
+                        val d = state.desglose
+                        Text(
+                            text = "Precio por cada ${Tarifario.PASO} personas: ${formatoMoneda.format(d.precioBase)}",
+                            color = Color.Gray,
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            text = "${d.asistentes} personas = ${d.grupos} grupos de ${Tarifario.PASO}",
+                            color = Color.Gray,
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            text = "${formatoMoneda.format(d.precioBase)} × ${d.grupos} = ${formatoMoneda.format(d.total)}",
+                            color = Color.Gray,
+                            fontSize = 13.sp
+                        )
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
@@ -283,7 +301,7 @@ fun ReservaScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = "Abono 50% para reservar", color = Color(0xFF4C5BF5), fontSize = 14.sp)
+                            Text(text = "Abono ${Tarifario.PORCENTAJE_ABONO}% para reservar", color = Color(0xFF4C5BF5), fontSize = 14.sp)
                             AnimatedContent(targetState = state.abono, label = "abono") { abono ->
                                 Text(
                                     text = formatoMoneda.format(abono),
