@@ -20,13 +20,13 @@ object ApiConfig {
     }
 
     val RESERVAS_URL = if (USE_RENDER) {
-        "https://TU-RESERVAS-SERVICE.onrender.com/"
+        "https://reservas-service-5syk.onrender.com/"
     } else {
         "$LOCAL_HOST:8083/"
     }
 
     val PAGOS_URL = if (USE_RENDER) {
-        "https://TU-PAGOS-SERVICE.onrender.com/"
+        "https://pagos-service-dqyv.onrender.com/"
     } else {
         "$LOCAL_HOST:8084/"
     }
