@@ -6,6 +6,9 @@ import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import okhttp3.MultipartBody
+import retrofit2.http.Multipart
+import retrofit2.http.Part
 
 data class ProductoDto(
     val id: Int,
@@ -38,4 +41,11 @@ interface CatalogoApi {
 
     @PATCH("productos/{id}/activo")
     suspend fun cambiarActivo(@Path("id") id: Int, @Body request: ActivoRequest): ProductoDto
+
+    @Multipart
+    @POST("productos/{id}/imagen")
+    suspend fun subirImagen(
+        @Path("id") id: Int,
+        @Part archivo: MultipartBody.Part
+    ): ProductoDto
 }

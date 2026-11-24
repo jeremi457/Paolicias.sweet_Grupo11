@@ -38,6 +38,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myappnavigation.model.CatalogoData
 import com.example.myappnavigation.ui.viewmodel.ProductoFormViewModel
 import com.example.myappnavigation.ui.components.MensajeError
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.asImageBitmap
+import com.example.myappnavigation.ui.components.ImagenProducto
 
 @Composable
 fun AdminProductoFormScreen(
@@ -48,6 +55,22 @@ fun AdminProductoFormScreen(
 ) {
     val state = viewModel.uiState
     val context = LocalContext.current
+    val galeria = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.onImagenSeleccionada(uri)
+        }
+    }
+
+    val vistaPrevia = remember(viewModel.imagenUri) {
+        viewModel.imagenUri?.let { uri ->
+            val opciones = BitmapFactory.Options().apply { inSampleSize = 4 }
+            context.contentResolver.openInputStream(uri)?.use { entrada ->
+                BitmapFactory.decodeStream(entrada, null, opciones)
+            }?.asImageBitmap()
+        }
+    }
 
 
     LaunchedEffect(productoId) {
@@ -120,58 +143,58 @@ fun AdminProductoFormScreen(
                 )
 
                 Column {
-                    Text(text = "Imagen", fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp)
+                    Text(
+                        text = "Foto del producto",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
                     Spacer(modifier = Modifier.height(6.dp))
-                    CatalogoData.clavesImagen.chunked(3).forEach { fila ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                            horizontalArrangement =
-                                Arrangement.spacedBy(8.dp)
-                        ) {
-                            for (clave in fila) {
-                                val seleccionada = state.imagen == clave
-                                Button(
-                                    onClick = {
-                                        viewModel.onImagenChanged(clave) },
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (seleccionada)
-                                            Color(0xFF4C5BF5) else Color(0xFFEEF0FE),
-                                        contentColor = if (seleccionada)
-                                            Color.White else Color(0xFF4C5BF5)
-                                    ),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(clave, fontSize = 12.sp, fontWeight
-                                    = FontWeight.Bold)
-                                }
-                            }
-// Huecos que faltan en la fila
-                            repeat(3 - fila.size) {
-                                Spacer(modifier = Modifier.weight(1f))
-                            }
-                        }
+                    Button(
+                        onClick = {
+                            galeria.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFEEF0FE),
+                            contentColor = Color(0xFF4C5BF5)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = if (vistaPrevia != null || productoId != 0) "Cambiar foto" else "Elegir foto de la galería",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-// Vista previa de la imagen elegida
-                Image(
-                    painter = painterResource(id =
-                        CatalogoData.imagenPorClave(state.imagen)),
-                    contentDescription = "Vista previa del producto",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
+
+                if (vistaPrevia != null) {
+                    Image(
+                        bitmap = vistaPrevia,
+                        contentDescription = "Vista previa del producto",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                } else if (productoId != 0) {
+                    ImagenProducto(
+                        productoId = productoId,
+                        clave = state.imagen,
+                        descripcion = "Vista previa del producto",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                }
                 MensajeError(viewModel.errorMessage)
                 Button(
                     onClick = {
                         if (viewModel.validarFormulario()) {
-                            viewModel.guardarProducto {
+                            viewModel.guardarProducto(context) {
                                 Toast.makeText(context, "Producto guardado",
                                     Toast.LENGTH_SHORT).show()
                                 onGuardado()
