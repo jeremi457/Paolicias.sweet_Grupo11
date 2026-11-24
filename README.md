@@ -1,122 +1,206 @@
-# Paolicias Sweet - Aplicacion Movil Android
+# Paolicias.Sweet · Aplicación móvil Android
 
-Aplicacion movil desarrollada en Kotlin y Jetpack Compose para la pasteleria y servicio de banquetes y catering Paolicias Sweet. Permite a los clientes explorar productos artesanales, cotizar eventos segun cantidad de asistentes, reservar fechas con persistencia local en Room, subir comprobantes de pago de abono mediante la galeria nativa, recibir notificaciones del estado de su solicitud y experimentar respuesta haptica mediante vibracion.
+Aplicación móvil en **Kotlin y Jetpack Compose** para **Paolicias.Sweet**, un servicio de pastelería, banquetería y catering. Los clientes exploran el catálogo, cotizan un evento según la cantidad de asistentes, reservan una fecha y suben el comprobante de pago del abono. La administradora gestiona los productos y valida los pagos.
 
-Este proyecto corresponde a la Evaluacion Parcial 2 de la asignatura Desarrollo de Aplicaciones Moviles (DSY1105) de Duoc UC.
+La app se conecta mediante **Retrofit** a cuatro **microservicios Spring Boot** desplegados en **Render**, con base de datos **PostgreSQL en Supabase**. En el dispositivo usa **Room (SQLite)** para los clientes registrados y la sesión activa.
 
----
+Proyecto de la asignatura **Desarrollo de Aplicaciones Móviles (DSY1105)** · Duoc UC · Experiencia 3 · **Grupo 11**.
 
-## Integrantes del Equipo (Grupo 11)
-
-* Integrantes:
-  * Milton Espinoza
-  * Felipe Zapata
-  * Jeremi Macaya
-
-* Institucion: Duoc UC  
-* Asignatura: Desarrollo de Aplicaciones Moviles (DSY1105)  
-* Docente: Eduardo Baeza  
-* Repositorio GitHub: https://github.com/jeremi457/Paolicias.sweet_Grupo11.git  
+| | |
+|---|---|
+| Docente | Eduardo Baeza |
+| Integrantes | Milton Espinoza · Felipe Zapata · Jeremi Macaya |
+| Repositorio de la app | https://github.com/jeremi457/Paolicias.sweet_Grupo11 |
+| Repositorio del backend | `<URL-del-repositorio-backend>` |
 
 ---
 
-## Funcionalidades y Composables Implementados (8+ Composables)
+## 1. Roles y casos de uso
 
-El proyecto cumple ampliamente con el requisito de construir un minimo de 6 composables funcionales:
+La app implementa **dos roles** con navegación y pantallas propias.
 
-1. ScreenHeroe: Pantalla de bienvenida y presentacion de la marca con identidad visual.
-2. Login: Formulario de inicio de sesion con validacion de credenciales contra Room SQLite.
-3. Register: Formulario de registro con validaciones de campos en tiempo real.
-4. Principal: Menu principal con saludo dinamico al usuario, banner destacado y accesos directos.
-5. CatalogScreen (Catalogo): Catalogo interactivo de tortas y cocteles con paso de parametros productoId.
-6. ReservaScreen (Reserva): Cotizador dinamico con contador de asistentes (+ / -), calculo de total y abono del 50%.
-7. ReservationsScreen (MisReservas): Historial reactivo de reservas desde Room con badges de estado (Pendiente de pago / Comprobante enviado).
-8. UploadReceiptScreen (UploadReceipt): Pantalla de confirmacion y carga de foto del comprobante de abono.
-9. Componentes Modulares Reutilizables:
-   * BarraInferior: Navegacion compartida entre pantallas principales.
-   * IconoError: Indicador visual de alerta circular rojo ante errores de validacion.
-   * MensajeError: Mensajes de validacion animados con AnimatedVisibility.
+![Diagrama de casos de uso](docs/diagrama-casos-uso.png)
+
+| Rol | Qué puede hacer |
+|---|---|
+| **Cliente** | Registrarse, iniciar sesión, ver productos, reservar (con observaciones opcionales), pagar la reserva subiendo el comprobante y ver sus reservas con su estado. |
+| **Administrador** | Iniciar sesión con credencial de administrador, crear y editar productos, activarlos o desactivarlos, subir la foto de cada producto, ver todas las reservas, revisar comprobantes y aprobar o rechazar pagos. |
 
 ---
 
-## Persistencia de Datos Local (Room Database v2)
+## 2. Arquitectura de la aplicación (MVVM)
 
-* UsuarioEntity / UsuarioDao: Gestion local de usuarios y autenticacion.
-* ReservaEntity / ReservaDao: Registro de cotizaciones, montos calculados, fechas, estado y ruta de imagen del comprobante.
-* Migracion Room v2: Singleton AppDatabase configurado con soporte para consultas asincronas con Coroutines (Dispatchers.IO).
+![Arquitectura de la app](docs/arquitectura-android.png)
 
----
+La app sigue el patrón **MVVM** con capas separadas:
 
-## Recursos Nativos del Dispositivo (Android APIs)
+| Capa | Paquete | Responsabilidad |
+|---|---|---|
+| **View** | `ui/screen`, `ui/components`, `ui/navigation` | Composables que muestran el estado y reenvían eventos. No contienen reglas de negocio. |
+| **ViewModel** | `ui/viewmodel` | Estado de cada pantalla (`mutableStateOf`), validaciones de formularios y llamadas a los repositorios con corrutinas. |
+| **Data** | `data/repository`, `data/session` | Repositorios que envuelven las llamadas a la API y manejan errores (`Result`); `SesionManager` guarda la sesión. |
+| **Remoto** | `data/remote` | Interfaces Retrofit, `RetrofitFactory`, `ApiConfig` y mapeo de errores de red. |
+| **Local** | `data/database`, `data/local` | Base Room: entidades y DAOs de usuarios y sesión. |
+| **Model** | `model` | Modelos de formularios, `Tarifario` (cálculo de total y abono) y estados de reserva. |
 
-La pauta exige un minimo de 2 recursos nativos. En este proyecto se integraron 3 recursos nativos:
-
-1. Photo Picker / Galeria del Sistema (ActivityResultContracts.PickVisualMedia):  
-   Permite al cliente seleccionar una foto de su comprobante bancario desde la galeria de forma moderna, segura y sin requerir permisos invasivos de almacenamiento.
-2. Notificaciones del Sistema (NotificationManagerCompat):  
-   Creacion de canal de notificacion Android (reservas_paolicias) y solicitud de permisos en tiempo de ejecucion para Android 13+ (POST_NOTIFICATIONS). Dispara alertas al confirmar reservas y al enviar comprobantes.
-3. Vibracion Haptica del Dispositivo (Vibrator / VibrationEffect en Vibracion.kt):  
-   Emision de respuesta tactil en el hardware del telefono al presionar botones clave y validar acciones.
-
----
-
-## Arquitectura MVVM y Desacoplamiento
-
-* Model: UsuarioEntity, ReservaEntity, ProductoCatalogo, ReservaModel, Tarifario.
-* ViewModel: LoginViewModel, RegisterViewModel, ReservaViewModel, ReservasViewModel. Toda la logica de calculo financiero y las validaciones de negocio (fechas validas no anteriores a hoy, telefono de exactamente 9 digitos, notas) se encuentran 100% aisladas de los Composables.
-* View: Composables reactivos que observan el uiState inmutable.
-
----
-
-## Diseno Visual Material 3 y Animaciones
-
-* Diseno consistente basado en Material Design 3 con paleta corporativa (#4C5BF5, fondo #F5F6FA).
-* Animaciones de navegacion: Transiciones suaves en NavHost (slideInHorizontally + fadeIn / slideOutHorizontally + fadeOut).
-* Micro-interacciones: AnimatedVisibility para mostrar/ocultar suavemente los mensajes de error y la previsualizacion de la foto seleccionada.
-
----
-
-## Tecnologias y Librerias
-
-* Lenguaje: Kotlin 2.0+
-* Framework UI: Jetpack Compose (BOM)
-* Diseno: Material Design 3
-* Navegacion: Jetpack Navigation Compose (2.8.0)
-* Base de Datos: Room Database (2.8.4) + KSP + SQLite
-* Asincronia: Kotlin Coroutines + StateFlow / mutableStateOf
-* Min SDK: 23 (Android 6.0 Marshmallow)
-* Target / Compile SDK: 34 / 36
+```
+app/src/main/java/com/example/myappnavigation/
+├── MainActivity.kt
+├── data/
+│   ├── database/AppDatabase.kt          Room (versión 7)
+│   ├── local/dao · local/entity         UsuarioDao, SesionDao, UsuarioEntity, SesionEntity
+│   ├── remote/                          ApiConfig, RetrofitFactory, AuthApi, CatalogoApi,
+│   │                                    ReservasApi, PagosApi, ErroresRed
+│   ├── repository/                      Auth, Catalogo, Reservas y Pagos
+│   └── session/SesionManager.kt         SesionActual (memoria) + persistencia en Room
+├── model/                               Tarifario, EstadoReserva, modelos de formularios
+├── ui/
+│   ├── navigation/AppNavigation.kt      NavHost y rutas por rol
+│   ├── screen/                          Pantallas Compose
+│   ├── viewmodel/                       ViewModels
+│   ├── components/                      Header, Footer, BarraInferior, ImagenProducto, IconoError
+│   └── theme/                           Material 3
+└── util/                                FechaUtil, ImagenUtil (compresión de imágenes)
+```
 
 ---
 
-## Pasos para Ejecutar el Proyecto
+## 3. Pantallas y navegación por rol
 
-1. Clonar el repositorio:
+`AppNavigation` restaura la sesión guardada al abrir la app y decide la pantalla inicial: el administrador entra directo a su panel, el cliente al menú principal y quien no tiene sesión, a la bienvenida.
+
+| Pantalla | Rol | Función |
+|---|---|---|
+| `ScreenHeroe` | Sin sesión | Bienvenida y presentación de la marca. |
+| `Login` / `Register` | Cliente | Inicio de sesión y registro de clientes. |
+| `LoginAdmin` | Administrador | Inicio de sesión contra `auth-service`. |
+| `Principal` | Cliente | Menú principal con accesos directos y cierre de sesión. |
+| `CatalogScreen` | Cliente | Catálogo de productos activos. |
+| `ReservaScreen` | Cliente | Cotizador: fecha, horario, asistentes (+ / −), teléfono, observaciones, total y abono del 50 %. |
+| `UploadReceiptScreen` | Cliente | Selección y envío de la foto del comprobante. |
+| `ReservationsScreen` | Cliente | Historial de reservas con su estado. |
+| `AdminProductosScreen` | Administrador | Lista de productos, activar o desactivar, ir al formulario. |
+| `AdminProductoFormScreen` | Administrador | Crear o editar un producto y subir su foto. |
+| `AdminReservasScreen` | Administrador | Todas las reservas; ver el comprobante y aprobar o rechazar el pago. |
+
+Las transiciones usan animaciones de `NavHost` (`slideIn` + `fadeIn`) y los mensajes de error aparecen con `AnimatedVisibility`.
+
+---
+
+## 4. Autenticación y persistencia local
+
+La gestión de autenticación se apoya en **Room (SQLite)** para ambos roles:
+
+- **Clientes:** se registran y validan sus credenciales contra la tabla `users` de Room.
+- **Administrador:** valida sus credenciales en `auth-service`, que devuelve un **JWT** y el rol.
+- **Sesión:** en ambos casos se guarda en la tabla `sesion` (rol, nombre, correo y token). `SesionActual` mantiene una copia en memoria que lee el interceptor de Retrofit.
+- **Cerrar sesión** borra la copia en memoria y la fila de Room.
+
+| Tabla Room | Contenido |
+|---|---|
+| `users` | `id`, `name`, `email`, `password` |
+| `sesion` | `id`, `rol`, `nombre`, `email`, `token` |
+
+---
+
+## 5. Conexión con los microservicios
+
+Las URLs se definen en `data/remote/ApiConfig.kt`. Con `USE_RENDER = true` la app usa los servicios desplegados; con `false` usa el backend local desde el emulador (`10.0.2.2`).
+
+| Servicio | Local (emulador) | Interfaz Retrofit |
+|---|---|---|
+| auth-service | `http://10.0.2.2:8081/` | `AuthApi` |
+| catalogo-service | `http://10.0.2.2:8082/` | `CatalogoApi` |
+| reservas-service | `http://10.0.2.2:8083/` | `ReservasApi` |
+| pagos-service | `http://10.0.2.2:8084/` | `PagosApi` |
+
+- `RetrofitFactory` crea un único cliente OkHttp con conversor Gson, registro de peticiones (`HttpLoggingInterceptor`) y un interceptor que agrega `Authorization: Bearer <token>` a todas las llamadas, excepto login y registro.
+- Los *timeouts* son de **120 segundos**, porque en el plan gratuito de Render el primer acceso tras un rato de inactividad puede demorar.
+- `llamarApi` convierte excepciones HTTP y de red en mensajes claros para el usuario, usando el campo `message` de la respuesta del servidor cuando existe.
+- Las fotos de productos se descargan desde `GET /productos/{id}/imagen`; los productos sin foto propia usan imágenes incluidas en `res/drawable`.
+
+Para el detalle de endpoints, reglas de negocio y despliegue, revisa el README del repositorio del backend.
+
+---
+
+## 6. Recursos nativos del dispositivo
+
+| Recurso | Cliente | Administrador |
+|---|---|---|
+| **Photo Picker** (`ActivityResultContracts.PickVisualMedia`) | Elige la foto del comprobante de pago. | Elige la foto de cada producto. |
+| **Vibración** (`Vibrator` + `VibrationEffect`, permiso `VIBRATE`) | Vibra al guardar la reserva. | Vibra al aprobar o rechazar un pago. |
+
+El Photo Picker no requiere permisos de almacenamiento. Antes de enviar una imagen, `ImagenUtil` la reduce a un máximo de 1280 px de ancho y la comprime como JPEG, para respetar el límite de 5 MB del backend.
+
+---
+
+## 7. Validación de formularios
+
+| Formulario | Validaciones |
+|---|---|
+| Registro | Campos obligatorios, correo válido, contraseña de al menos 8 caracteres, confirmación igual a la contraseña, correo no repetido. |
+| Login cliente y administrador | Correo y contraseña obligatorios; error si las credenciales no coinciden. |
+| Reserva | Fecha en formato `dd/mm/aaaa`, existente en el calendario y no anterior a hoy, horario elegido, asistentes de 10 en 10 hasta 100, teléfono de 9 dígitos, observaciones de máximo 200 caracteres. |
+| Producto (admin) | Nombre y precio obligatorios (el precio solo admite dígitos) y foto del producto elegida desde la galería. |
+
+El servidor repite estas reglas, así que los datos quedan validados en ambos lados.
+
+---
+
+## 8. Tecnologías y librerías
+
+| Área | Tecnología |
+|---|---|
+| Lenguaje | Kotlin 2.2.10 |
+| UI | Jetpack Compose (BOM 2026.02.01) y Material Design 3 |
+| Navegación | Navigation Compose 2.8.0 |
+| Persistencia local | Room 2.8.4 con KSP |
+| Red | Retrofit 2.11.0, conversor Gson y OkHttp Logging Interceptor 4.12.0 |
+| Asincronía | Corrutinas de Kotlin |
+| Build | Android Gradle Plugin 9.3.3 |
+| SDK | `minSdk` 23 · `targetSdk` y `compileSdk` 36 |
+
+---
+
+## 9. Cómo ejecutar el proyecto
+
+1. Clona el repositorio:
+
    ```bash
    git clone https://github.com/jeremi457/Paolicias.sweet_Grupo11.git
    ```
-2. Abrir en Android Studio:
-   * Abrir Android Studio (Ladybug, Koala o version reciente).
-   * Seleccionar File > Open... y escoger la carpeta raiz del proyecto.
-3. Sincronizar Gradle:
-   * Aguardar la sincronizacion automatica de dependencias (Gradle Sync).
-4. Ejecutar en Emulador o Dispositivo Fisico:
-   * Seleccionar un emulador Android (API 26 o superior, recomendado API 33+ para notificaciones).
-   * Presionar Run 'app' (Shift + F10).
-5. Flujo de Prueba Sugerido:
-   * Registrarse o iniciar sesion con un usuario.
-   * Entrar al Catalogo, elegir una torta o servicio de catering y pulsar en cotizar.
-   * Modificar asistentes con + / -, verificar calculo dinamico de total y abono del 50%.
-   * Ingresar telefono de 9 digitos y confirmar (se emitira notificacion local nativa).
-   * Enviar foto del comprobante desde la galeria (Photo Picker).
-   * Consultar en Mis reservas el estado actualizado del pedido.
+
+2. Abre la carpeta en **Android Studio** (versión reciente) y espera la sincronización de Gradle.
+3. Elige a qué backend conectarte en `data/remote/ApiConfig.kt`:
+   - `USE_RENDER = true`: usa los microservicios desplegados en Render. No necesitas levantar nada.
+   - `USE_RENDER = false`: usa el backend local. Levántalo antes con `docker compose up --build` (ver README del backend).
+4. Ejecuta **Run 'app'** en un emulador o dispositivo con Android 6.0 (API 23) o superior.
+5. Con Render, la primera petición puede tardar hasta que el servicio despierte. La app espera hasta 120 segundos.
+
+### Flujo de prueba sugerido
+
+1. **Cliente:** regístrate, inicia sesión y entra al catálogo.
+2. Elige un producto, cambia la cantidad de asistentes y revisa el total y el abono del 50 %.
+3. Completa fecha, horario y teléfono, y confirma la reserva (el teléfono vibra).
+4. Sube la foto del comprobante desde la galería.
+5. En **Mis reservas**, comprueba el estado `Comprobante enviado`.
+6. **Administrador:** cierra sesión, entra con la credencial de administrador, abre las reservas, revisa el comprobante y aprueba el pago.
+7. Vuelve al cliente y verifica que la reserva quedó `Confirmada`.
 
 ---
 
-## Gestion Colaborativa y Git Flow
+## 10. Pruebas
 
-* Estrategia de Ramas:
-  * master: Rama principal con codigo estable y versiones de entrega.
-  * Ramas de caracteristicas por integrante: Milton-duoc, felipe-duoc, jeremi-duoc.
-  * Integracion mediante Pull Requests validados.
-* Planificacion Agil: Tablero organizado en Trello con Epicas, Historias de Usuario, Criterios de Aceptacion (Checklists) y seguimiento del flujo de trabajo.
+El módulo incluye las pruebas de ejemplo de Android Studio (`ExampleUnitTest` y `ExampleInstrumentedTest`). Las pruebas unitarias del backend se describen en el README del backend.
+
+```bash
+./gradlew test
+```
+
+---
+
+## 11. Gestión colaborativa
+
+- **Ramas:** `master` con el código estable, ramas por integrante (`Milton-duoc`, `felipe-duoc`, `jeremi-duoc`) y *Pull Requests* para integrar.
+- **Rama `documents`:** contiene los diagramas de arquitectura de microservicios y de arquitectura del proyecto (carpeta `docs/`).
+- **Planificación:** tablero en Trello con épicas, historias de usuario y criterios de aceptación.
