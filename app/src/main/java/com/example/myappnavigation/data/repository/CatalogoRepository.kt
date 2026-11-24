@@ -7,6 +7,9 @@ import com.example.myappnavigation.data.remote.ProductoDto
 import com.example.myappnavigation.data.remote.ProductoRequest
 import com.example.myappnavigation.data.remote.RetrofitFactory
 import com.example.myappnavigation.data.remote.llamarApi
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class CatalogoRepository {
 
@@ -30,4 +33,10 @@ class CatalogoRepository {
     suspend fun cambiarActivo(id: Int, activo: Boolean):
             Result<ProductoDto> = llamarApi {
                 api.cambiarActivo(id, ActivoRequest(activo)) }
+
+    suspend fun subirImagen(id: Int, bytes: ByteArray): Result<ProductoDto> = llamarApi {
+        val cuerpo = bytes.toRequestBody("image/jpeg".toMediaType())
+        val parte = MultipartBody.Part.createFormData("archivo", "producto.jpg", cuerpo)
+        api.subirImagen(id, parte)
+    }
 }

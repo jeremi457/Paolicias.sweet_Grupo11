@@ -17,7 +17,6 @@ data class ReservaModel(
     val telefonoError: String? = null,
     val observacionesError: String? = null
 ) {
-    val desglose: Tarifario.Desglose get() = Tarifario.desglosar(precioBase, asistentes)
-    val total: Int get() = desglose.total
-    val abono: Int get() = desglose.abono
+    val total: Int get() = Tarifario.calcularTotal(precioBase, asistentes)
+    val abono: Int get() = Tarifario.calcularAbono(total)
 }

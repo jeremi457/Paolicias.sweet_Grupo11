@@ -39,6 +39,7 @@ import com.example.myappnavigation.model.CatalogoData
 import com.example.myappnavigation.ui.viewmodel.AdminProductosViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import com.example.myappnavigation.ui.components.ImagenProducto
 
 @Composable
 fun AdminProductosScreen(
@@ -186,11 +187,10 @@ fun TarjetaProductoAdmin(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id =
-                        CatalogoData.imagenPorClave(producto.imagen)),
-                    contentDescription = producto.nombre,
-                    contentScale = ContentScale.Crop,
+                ImagenProducto(
+                    productoId = producto.id,
+                    clave = producto.imagen,
+                    descripcion = producto.nombre,
                     modifier = Modifier
                         .size(64.dp)
                         .clip(RoundedCornerShape(12.dp))

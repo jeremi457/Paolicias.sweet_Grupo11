@@ -42,6 +42,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import com.example.myappnavigation.ui.components.ImagenProducto
 
 @Composable
 fun CatalogScreen(
@@ -183,10 +184,10 @@ fun TarjetaProducto(
             modifier = Modifier.fillMaxWidth()
         ) {
 
-            Image(
-                painter = painterResource(id = CatalogoData.imagenPorClave(producto.imagen)),
-                contentDescription = producto.nombre,
-                contentScale = ContentScale.Crop,
+            ImagenProducto(
+                productoId = producto.id,
+                clave = producto.imagen,
+                descripcion = producto.nombre,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp)
